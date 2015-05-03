@@ -1,0 +1,74 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <TextView
+        android:id="@+id/invites_text"
+        android:textSize="20sp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingLeft="8dp"
+        android:text="@string/invites"
+        android:textColor="@color/orange"
+        android:background="@color/dark_purple" />
+
+    <ListView
+        android:id="@+id/invites_list"
+        android:layout_below="@id/invites_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"></ListView>
+
+    <TextView
+        android:id="@+id/your_turn_text"
+        android:paddingLeft="8dp"
+        android:textSize="20sp"
+        android:layout_below="@id/invites_list"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/your_turn"
+        android:textColor="@color/orange"
+        android:background="@color/dark_purple" />
+
+    <ListView
+        android:id="@+id/your_turn_list"
+        android:layout_below="@id/your_turn_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"></ListView>
+
+    <TextView
+        android:id="@+id/their_turn_text"
+        android:paddingLeft="8dp"
+        android:textSize="20sp"
+        android:layout_below="@id/your_turn_list"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/their_turn"
+        android:textColor="@color/orange"
+        android:background="@color/dark_purple" />
+
+    <ListView
+        android:id="@+id/their_turn_list"
+        android:layout_below="@id/their_turn_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"></ListView>
+
+    <TextView
+        android:id="@+id/game_over_text"
+        android:paddingLeft="8dp"
+        android:textSize="20sp"
+        android:layout_below="@id/their_turn_list"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/game_over"
+        android:textColor="@color/orange"
+        android:background="@color/dark_purple" />
+
+    <ListView
+        android:id="@+id/game_over_list"
+        android:layout_below="@id/game_over_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"></ListView>
+
+</RelativeLayout>

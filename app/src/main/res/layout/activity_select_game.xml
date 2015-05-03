@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:background="@color/light_purple"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_centerInParent="true"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+        <LinearLayout
+            android:id="@+id/collaborative_layout"
+            android:background="@drawable/select_game_rect"
+            android:padding="12dp"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:id="@+id/collaborative_text"
+                android:text="@string/collaborative"
+                android:textColor="@color/orange"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+            <Button
+                android:id="@+id/friends_button"
+                android:textSize="20sp"
+                android:layout_marginTop="12dp"
+                android:layout_width="wrap_content"
+                android:paddingLeft="35dp"
+                android:paddingRight="35dp"
+                android:textAllCaps="false"
+                android:layout_height="wrap_content"
+                android:text="@string/friends"
+                android:textColor="@color/dark_purple"
+                android:background="@drawable/game_type_friends_button" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:background="@drawable/select_game_rect"
+            android:layout_marginTop="12dp"
+            android:padding="12dp"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:id="@+id/vs_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/button_white"
+                android:text="@string/vs" />
+
+            <Button
+                android:id="@+id/computer_button"
+                android:textSize="20sp"
+                android:layout_marginTop="12dp"
+                android:layout_width="wrap_content"
+                android:paddingLeft="25dp"
+                android:paddingRight="25dp"
+                android:textAllCaps="false"
+                android:layout_height="wrap_content"
+                android:text="@string/computer"
+                android:textColor="@color/dark_purple"
+                android:background="@drawable/oval_challenge_button" />
+
+            <Button
+                android:id="@+id/separate_button"
+                android:textSize="20sp"
+                android:layout_marginTop="12dp"
+                android:layout_width="wrap_content"
+                android:paddingLeft="35dp"
+                android:paddingRight="35dp"
+                android:textAllCaps="false"
+                android:layout_height="wrap_content"
+                android:text="@string/friends"
+                android:textColor="@color/dark_purple"
+                android:background="@drawable/oval_challenge_button" />
+
+        </LinearLayout>
+    </LinearLayout>
+
+</RelativeLayout>
