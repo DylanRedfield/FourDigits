@@ -29,5 +29,14 @@
     <string name="computer">Computer</string>
     <string name="separate">Separate</string>
     <string name="alternate">Alternate</string>
+    <string name="first_name_hint">First Name</string>
+    <string name="username_hint">Username</string>
+    <string name="password_hint">Password</string>
+    <string name="register">Register</string>
+    <string name="already_have_account">Already have an Account?</string>
+    <string name="cancel">cancel</string>
     <string name="vs_computer">Vs. Computer</string>
+    <string name="invited">invited</string>
+    <string name="new_game">New Game +</string>
+    <string name="add_friend">Add Friend</string>
 </resources>
