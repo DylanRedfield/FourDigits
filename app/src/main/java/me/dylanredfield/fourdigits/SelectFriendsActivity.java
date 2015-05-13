@@ -34,6 +34,7 @@ public class SelectFriendsActivity extends ActionBarActivity {
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        //TODO make gameobject using static method
         setContentView(R.layout.activity_select_friends);
         if (mContext == null) {
             mContext = this;
@@ -42,7 +43,7 @@ public class SelectFriendsActivity extends ActionBarActivity {
 
         mCurrentUser = ParseUser.getCurrentUser();
 
-        mFriendsQuery = mCurrentUser.getRelation(MainActivity.FRIENDS_KEY).getQuery();
+        mFriendsQuery = mCurrentUser.getRelation(ParseKeys.FRIENDS_KEY).getQuery();
         mFriendsQuery.orderByAscending("username");
 
         try {
@@ -104,7 +105,7 @@ public class SelectFriendsActivity extends ActionBarActivity {
             action.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    action.getBackground().setColorFilter(R.color.orange, PorterDuff.Mode.DARKEN);
+                    action.getBackground().setColorFilter(R.color.orange, PorterDuff.Mode.LIGHTEN);
                     action.setText("V");
                 }
             });

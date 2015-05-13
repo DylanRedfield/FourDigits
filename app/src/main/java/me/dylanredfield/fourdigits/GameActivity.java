@@ -62,12 +62,12 @@ public class GameActivity extends ActionBarActivity {
 
         try {
             mGameObject = ParseObject.createWithoutData("Game", getIntent()
-                    .getStringExtra(MainActivity.OBJECT_ID_STRING)).fetchIfNeeded();
+                    .getStringExtra(ParseKeys.OBJECT_ID_STRING)).fetchIfNeeded();
         } catch (ParseException e) {
             e.printStackTrace();
         }
         mAnswerArray = new String[4];
-        mAnswerArray = mGameObject.getList(MainActivity.CODE_KEY).toArray(mAnswerArray);
+        mAnswerArray = mGameObject.getList(ParseKeys.CODE_KEY).toArray(mAnswerArray);
 
         mFont = Typeface.createFromAsset(getAssets(), "Arista_2.ttf");
 
@@ -93,8 +93,8 @@ public class GameActivity extends ActionBarActivity {
     public void queryParse() {
 
         mGamesQuery = ParseQuery.getQuery("Guess");
-        mGamesQuery.whereEqualTo(MainActivity.GAME_KEY, mGameObject);
-        mGamesQuery.orderByAscending(MainActivity.ROUND_KEY);
+        mGamesQuery.whereEqualTo(ParseKeys.GAME_KEY, mGameObject);
+        mGamesQuery.orderByAscending(ParseKeys.ROUND_KEY);
 
         try {
             ArrayList<ParseObject> guessList = (ArrayList<ParseObject>) mGamesQuery.find();
@@ -102,7 +102,7 @@ public class GameActivity extends ActionBarActivity {
             for (int i = 0; i < guessList.size(); i++) {
                 Log.d("listTest", "queryParse");
                 String[] tempGuess = new String[4];
-                tempGuess = guessList.get(i).getList(MainActivity.GUESS_KEY).toArray(tempGuess);
+                tempGuess = guessList.get(i).getList(ParseKeys.GUESS_KEY).toArray(tempGuess);
                 mButtonList.get(i * 4).setText(tempGuess[0]);
                 mButtonList.get(i * 4 + 1).setText(tempGuess[1]);
                 mButtonList.get(i * 4 + 2).setText(tempGuess[2]);
@@ -121,12 +121,12 @@ public class GameActivity extends ActionBarActivity {
                         getResources().getColor(R.color.button_white),
                         PorterDuff.Mode.LIGHTEN);
                 mTextNums.get(i).setText("" +
-                        guessList.get(i).getInt(MainActivity.CORRECT_NUM_KEY));
+                        guessList.get(i).getInt(ParseKeys.CORRECT_NUM_KEY));
                 mTextSpots.get(i).setText("" +
-                        guessList.get(i).getInt(MainActivity.CORRECT_SPOT_KEY));
+                        guessList.get(i).getInt(ParseKeys.CORRECT_SPOT_KEY));
 
                 if (i == guessList.size() - 1) {
-                    mCurrentNumCorrectSpot = guessList.get(i).getInt(MainActivity.ROUND_KEY);
+                    mCurrentNumCorrectSpot = guessList.get(i).getInt(ParseKeys.ROUND_KEY);
                     mCurrentButtonInt = i * 4 + 4;
                 }
             }
@@ -242,7 +242,16 @@ public class GameActivity extends ActionBarActivity {
             b.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if (mPreviousButtonInt % 4 == 3 && !isChecked) {
+                    /*if (((Button) v).getText().toString().equals("0") &&
+                            mCurrentButtonInt % 4 != 0) {
+                        Log.d("backtest", "test");
+                        mPreviousButtonInt--;
+                        mCurrentButtonInt--;
+                        mButtonList.get(mCurrentButtonInt).getBackground().setColorFilter(
+                                getResources().getColor(R.color.dark_purple),
+                                PorterDuff.Mode.DARKEN);
+                        mButtonList.get(mCurrentButtonInt).setClickable(true);
+                    }*/ if (mPreviousButtonInt % 4 == 3 && !isChecked) {
                         AlertDialog.Builder builder = new AlertDialog.Builder(
                                 GameActivity.this);
                         builder.setMessage("Check Row First!")
@@ -324,10 +333,10 @@ public class GameActivity extends ActionBarActivity {
                     mTextNums.get(mCurrentNumCorrectSpot).setText("" + mNumCorrect);
 
                     if (mNumCorrectSpot == 4) {
-                        mGameObject.addAll(MainActivity.WINNERS_KEY,
+                        mGameObject.addAll(ParseKeys.WINNERS_KEY,
                                 Arrays.asList(new String[]{
                                         ParseUser.getCurrentUser().getObjectId()}));
-                        ParseUser.getCurrentUser().increment(MainActivity.TOTAL_WINS_KEY);
+                        ParseUser.getCurrentUser().increment(ParseKeys.TOTAL_WINS_KEY);
                         try {
                             mGameObject.save();
                         } catch (ParseException e) {
@@ -349,12 +358,12 @@ public class GameActivity extends ActionBarActivity {
 
                     Log.d("testLog", "testLog");
                     ParseObject guess = new ParseObject("Guess");
-                    guess.put(MainActivity.CORRECT_NUM_KEY, mNumCorrect);
-                    guess.put(MainActivity.CORRECT_SPOT_KEY, mNumCorrectSpot);
-                    guess.addAll(MainActivity.GUESS_KEY, Arrays.asList(tempArray));
-                    guess.put(MainActivity.ROUND_KEY, mCurrentNumCorrectSpot + 1);
-                    guess.put(MainActivity.GAME_KEY, mGameObject);
-                    guess.put(MainActivity.PLAYER_KEY, ParseUser.getCurrentUser());
+                    guess.put(ParseKeys.CORRECT_NUM_KEY, mNumCorrect);
+                    guess.put(ParseKeys.CORRECT_SPOT_KEY, mNumCorrectSpot);
+                    guess.addAll(ParseKeys.GUESS_KEY, Arrays.asList(tempArray));
+                    guess.put(ParseKeys.ROUND_KEY, mCurrentNumCorrectSpot + 1);
+                    guess.put(ParseKeys.GAME_KEY, mGameObject);
+                    guess.put(ParseKeys.PLAYER_KEY, ParseUser.getCurrentUser());
                     guess.saveInBackground();
                     mNumCorrectSpot = 0;
                     mNumCorrect = 0;
@@ -366,7 +375,7 @@ public class GameActivity extends ActionBarActivity {
                         b.setClickable(true);
                     }
                     if (mCurrentNumCorrectSpot == 10) {
-                        ParseUser.getCurrentUser().increment(MainActivity.TOTAL_LOSSES_KEY);
+                        ParseUser.getCurrentUser().increment(ParseKeys.TOTAL_LOSSES_KEY);
                         String code = "";
                         for (String s : mAnswerArray) {
                             code += s;
@@ -392,7 +401,7 @@ public class GameActivity extends ActionBarActivity {
 
     public void endGame() {
         //TODO do shit with game data
-        mGameObject.put(MainActivity.IS_OVER_KEY, true);
+        mGameObject.put(ParseKeys.IS_OVER_KEY, true);
         try {
             mGameObject.save();
         } catch (ParseException e) {
@@ -417,7 +426,7 @@ public class GameActivity extends ActionBarActivity {
     protected void onStop() {
         super.onStop();
         int indexInArray = 0;
-        String[] list = mGameObject.getList(MainActivity.USERS_TURN_KEY)
+        String[] list = mGameObject.getList(ParseKeys.USERS_TURN_KEY)
                 .toArray(new String[0]);
         for (int i = 0; i < list.length; i++) {
             if (list[i].equals(ParseUser.getCurrentUser().getObjectId())) {
@@ -426,11 +435,11 @@ public class GameActivity extends ActionBarActivity {
         }
 
 
-        Integer[] guessesRem = mGameObject.getList(MainActivity.GUESSES_REMAINING)
+        Integer[] guessesRem = mGameObject.getList(ParseKeys.GUESSES_REMAINING)
                 .toArray(new Integer[0]);
         guessesRem[indexInArray] = 10 - mCurrentNumCorrectSpot;
 
-        mGameObject.put(MainActivity.GUESSES_REMAINING, Arrays.asList(guessesRem));
+        mGameObject.put(ParseKeys.GUESSES_REMAINING, Arrays.asList(guessesRem));
         try {
             mGameObject.save();
         } catch (ParseException e) {

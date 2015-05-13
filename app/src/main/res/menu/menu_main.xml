@@ -4,5 +4,8 @@
     tools:context=".MainActivity">
     <item
         android:id="@+id/add_friend"
-        android:title="@string/add_friend"/>
-    </menu>
+        android:title="@string/add_friend" />
+    <item
+        android:id="@+id/sign_up"
+        android:title="@string/sign_up" />
+</menu>

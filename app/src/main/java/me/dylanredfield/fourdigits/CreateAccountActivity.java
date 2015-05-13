@@ -35,7 +35,7 @@ public class CreateAccountActivity extends ActionBarActivity {
     }
 
     public void makeObjects() {
-        mUser = new ParseUser();
+        mUser = ParseUser.getCurrentUser();
         mFont = Typeface.createFromAsset(getAssets(), "Arista_2.ttf");
 
         mFirstName = (EditText) findViewById(R.id.first_name);
@@ -95,8 +95,7 @@ public class CreateAccountActivity extends ActionBarActivity {
 
         try {
             mUser.signUp();
-            Intent i = new Intent(getApplicationContext(), SearchUserActivity.class);
-            startActivity(i);
+            finish();
         } catch (ParseException e) {
             e.printStackTrace();
         }

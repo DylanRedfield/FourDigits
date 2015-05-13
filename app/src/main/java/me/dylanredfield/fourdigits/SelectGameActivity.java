@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -60,18 +61,20 @@ public class SelectGameActivity extends ActionBarActivity {
                 ParseObject gameObject = makeParseObject("Single");
 
                 Intent i = new Intent(getApplicationContext(), GameActivity.class);
-                i.putExtra(MainActivity.OBJECT_ID_STRING, gameObject.getObjectId());
+                i.putExtra(ParseKeys.OBJECT_ID_STRING, gameObject.getObjectId());
                 startActivity(i);
+                finish();
             }
         });
         mFriendsVs.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ParseObject gameObject = makeParseObject("WhoFirst");
 
-                if (ParseUser.getCurrentUser().getInt(MainActivity.NUM_FRIENDS_KEY) > 0) {
+                if (ParseUser.getCurrentUser()
+                        .getNumber(ParseKeys.NUM_FRIENDS_KEY).intValue() > 0) {
                     Intent i = new Intent(getApplicationContext(), SelectFriendsActivity.class);
                     startActivity(i);
+                    finish();
                 } else {
                     AlertDialog.Builder builder = new AlertDialog.Builder(
                             SelectGameActivity.this);
@@ -88,7 +91,7 @@ public class SelectGameActivity extends ActionBarActivity {
         });
     }
 
-    public ParseObject makeParseObject(String type) {
+    public static ParseObject makeParseObject(String type) {
         ParseObject gameObject = new ParseObject("Game");
         String newType = "";
 
@@ -100,7 +103,7 @@ public class SelectGameActivity extends ActionBarActivity {
 
         gameObject.put("GameType",
                 ParseObject.createWithoutData("GameType", newType));
-        gameObject.addAll(MainActivity.CODE_KEY, Arrays.asList(makeAnswer()));
+        gameObject.addAll(ParseKeys.CODE_KEY, Arrays.asList(makeAnswer()));
         gameObject.addAll("guessesRemaining", Arrays.asList(new Integer[]{10}));
         gameObject.put("isOver", false);
         gameObject.put("numPlayers", 1);
@@ -117,7 +120,7 @@ public class SelectGameActivity extends ActionBarActivity {
         return gameObject;
     }
 
-    public String[] makeAnswer() {
+    public static String[] makeAnswer() {
         int one, two, three, four;
         String[] stringArray = new String[4];
         Random generator = new Random();

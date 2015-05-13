@@ -3,6 +3,7 @@ package me.dylanredfield.fourdigits;
 import android.app.Application;
 
 import com.parse.Parse;
+import com.parse.ParseUser;
 
 public class FourDigits extends Application {
     @Override
@@ -15,5 +16,6 @@ public class FourDigits extends Application {
         Parse.initialize(this, "slSYDPn6CjqfZbOkxJE70yTTJgRFTvHPMTLaLZNQ"
                 , "rUTgHY1epDlfO6FmN4Sdo89H7COf4DmXcsTZhm9u");
 
+        ParseUser.enableAutomaticUser();
     }
 }
