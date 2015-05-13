@@ -104,6 +104,7 @@ public class MainActivity extends ActionBarActivity {
         mUsernameText.setTypeface(mFont);
         mNewGame.setTypeface(mFont);
         mEmptyText.setTypeface(mFont);
+
         mAdapter = new GamesAdapter();
         mListView.setAdapter(mAdapter);
 

@@ -40,4 +40,5 @@
     <string name="new_game">New Game +</string>
     <string name="add_friend">Add Friend</string>
     <string name="sign_up">Sign Up</string>
+    <string name="complete">Finish</string>
 </resources>

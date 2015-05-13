@@ -1,8 +1,5 @@
 package me.dylanredfield.fourdigits;
 
-/**
- * Created by dylan_000 on 5/12/2015.
- */
 public class ParseKeys {
     public static String OBJECT_ID_STRING = "OBJECT_ID";
     public static String PREF_STRING = "SHARED_PREFERENCES";
@@ -14,6 +11,7 @@ public class ParseKeys {
     public static String SINGLE_LOSSES_KEY = "singleLosses";
     public static String SINGLE_WINS_KEY = "singleWins";
     public static String TOTAL_LOSSES_KEY = "totalLosses";
+    public static String GAME_TYPE_EXTRA = "GAME_TYPE_EXTRA";
     public static String TOTAL_TIES_KEY = "totalTies";
     public static String FRIENDS_KEY = "friends";
     public static String TOTAL_WINS_KEY = "totalWins";

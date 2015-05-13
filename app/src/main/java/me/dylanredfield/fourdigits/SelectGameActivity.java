@@ -31,6 +31,7 @@ public class SelectGameActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_select_game);
 
+
         instantiateViews();
         setFonts();
 
@@ -73,6 +74,7 @@ public class SelectGameActivity extends ActionBarActivity {
                 if (ParseUser.getCurrentUser()
                         .getNumber(ParseKeys.NUM_FRIENDS_KEY).intValue() > 0) {
                     Intent i = new Intent(getApplicationContext(), SelectFriendsActivity.class);
+                    i.putExtra(ParseKeys.GAME_TYPE_EXTRA, "WhoFirst");
                     startActivity(i);
                     finish();
                 } else {
