@@ -25,13 +25,13 @@ public class SelectGameActivity extends ActionBarActivity {
     private Button mComputer;
     private Button mFriendsVs;
     private Typeface mFont;
+    private ParseUser mCurrentUser;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_select_game);
-
-
+        mCurrentUser = ParseUser.getCurrentUser();
         instantiateViews();
         setFonts();
 
@@ -71,8 +71,7 @@ public class SelectGameActivity extends ActionBarActivity {
             @Override
             public void onClick(View v) {
 
-                if (ParseUser.getCurrentUser()
-                        .getNumber(ParseKeys.NUM_FRIENDS_KEY).intValue() > 0) {
+                if (mCurrentUser.getInt(ParseKeys.NUM_FRIENDS_KEY) > 0) {
                     Intent i = new Intent(getApplicationContext(), SelectFriendsActivity.class);
                     i.putExtra(ParseKeys.GAME_TYPE_EXTRA, "WhoFirst");
                     startActivity(i);
@@ -80,7 +79,8 @@ public class SelectGameActivity extends ActionBarActivity {
                 } else {
                     AlertDialog.Builder builder = new AlertDialog.Builder(
                             SelectGameActivity.this);
-                    builder.setMessage("You need atleast one friend")
+                    builder.setMessage("You need atleast one friend" + mCurrentUser.getInt(
+                            ParseKeys.NUM_FRIENDS_KEY))
                             .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialog, int id) {
                                 }

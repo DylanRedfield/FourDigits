@@ -11,16 +11,13 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-import com.parse.FindCallback;
 import com.parse.ParseException;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 public class GameActivity extends ActionBarActivity {
     private ParseObject mGameObject;
@@ -39,8 +36,9 @@ public class GameActivity extends ActionBarActivity {
     private boolean isChecked;
     private int mNumCorrect;
     private int mNumCorrectSpot;
-    private String gameType;
+    private String mGameType;
     private ParseQuery mGamesQuery;
+    private ParseUser mCurrentUser;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,6 +58,8 @@ public class GameActivity extends ActionBarActivity {
 
     public void getStuff() {
 
+        mCurrentUser = ParseUser.getCurrentUser();
+
         try {
             mGameObject = ParseObject.createWithoutData("Game", getIntent()
                     .getStringExtra(ParseKeys.OBJECT_ID_STRING)).fetchIfNeeded();
@@ -78,13 +78,14 @@ public class GameActivity extends ActionBarActivity {
         mTextNums = new ArrayList<TextView>();
 
         try {
-            gameType = mGameObject.getParseObject("GameType").fetchIfNeeded().getString("type");
+            mGameType = mGameObject.getParseObject("GameType").fetchIfNeeded().getString("type");
         } catch (ParseException e) {
             e.printStackTrace();
         }
 
-        if (gameType.equals("WhoFirst")) {
-
+        if (mGameType.equals("WhoFirst")) {
+            ParseQuery vsQuery = ParseQuery.getQuery("VsGame");
+            vsQuery.whereEqualTo()
 
         }
 
@@ -94,7 +95,14 @@ public class GameActivity extends ActionBarActivity {
 
         mGamesQuery = ParseQuery.getQuery("Guess");
         mGamesQuery.whereEqualTo(ParseKeys.GAME_KEY, mGameObject);
+
+        if (mGameType.equals(ParseKeys.GAME_TYPE_WHO_FIRST_STRING)
+                || mGameType.equals(ParseKeys.GAME_TYPE_SINGLE_STRING)) {
+            mGamesQuery.whereEqualTo(ParseKeys.PLAYER_KEY, mCurrentUser);
+            //TODO popup with guess numbers
+        }
         mGamesQuery.orderByAscending(ParseKeys.ROUND_KEY);
+
 
         try {
             ArrayList<ParseObject> guessList = (ArrayList<ParseObject>) mGamesQuery.find();
@@ -251,7 +259,8 @@ public class GameActivity extends ActionBarActivity {
                                 getResources().getColor(R.color.dark_purple),
                                 PorterDuff.Mode.DARKEN);
                         mButtonList.get(mCurrentButtonInt).setClickable(true);
-                    }*/ if (mPreviousButtonInt % 4 == 3 && !isChecked) {
+                    }*/
+                    if (mPreviousButtonInt % 4 == 3 && !isChecked) {
                         AlertDialog.Builder builder = new AlertDialog.Builder(
                                 GameActivity.this);
                         builder.setMessage("Check Row First!")

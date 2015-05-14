@@ -39,4 +39,22 @@ public class ParseKeys {
     public static String USER_KEY = "user";
     public static String USERS_TURN_KEY = "usersTurn";
     public static String GAME_TYPE_KEY = "GameType";
+
+    public static String UPDATED_AT_KEY = "updatedAt";
+    public static String GAME_TYPE_COLLAB = "OlTiCKLYM0";
+    public static String GAME_TYPE_WHO_FIRST = "VO1JEboYcd";
+    public static String GAME_TYPE_SINGLE = "RES5eEM4gi";
+
+    public static String GAME_TYPE_WHO_FIRST_STRING = "WhoFirst";
+    public static String GAME_TYPE_SINGLE_STRING = "Single";
+
+
+    public static String ACC_ARRAY_KEY = "accArray";
+    public static String ACCEPTED_USERS_KEY = "acceptedUsers";
+    public static String FROM_USER_KEY = "fromUser";
+    public static String INVITED_USERS_KEY = "invitedUsers";
+    public static String NUM_ACCEPTED_KEY = "numAcc";
+    public static String NUM_SENT_KEY = "numSent";
+    public static String TO_USERS_KEY = "toUsers";
+    public static String USERNAME_KEY = "username";
 }
