@@ -39,6 +39,7 @@ public class GameActivity extends ActionBarActivity {
     private String mGameType;
     private ParseQuery mGamesQuery;
     private ParseUser mCurrentUser;
+    private ParseObject mVsGame;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -85,7 +86,14 @@ public class GameActivity extends ActionBarActivity {
 
         if (mGameType.equals("WhoFirst")) {
             ParseQuery vsQuery = ParseQuery.getQuery("VsGame");
-            vsQuery.whereEqualTo()
+            vsQuery.whereEqualTo(ParseKeys.GAME_KEY, mGameObject);
+            vsQuery.whereEqualTo(ParseKeys.PLAYER_KEY, mCurrentUser);
+
+            try {
+                mVsGame = vsQuery.getFirst();
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
 
         }
 
@@ -302,110 +310,116 @@ public class GameActivity extends ActionBarActivity {
         mCheck.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mPreviousButtonInt % 4 == 3 && !isChecked) {
-                    String[] tempArray = new String[]
-                            {
-                                    mButtonList.get(mCurrentButtonInt - 4).getText().toString(),
-                                    mButtonList.get(mCurrentButtonInt - 3).getText().toString(),
-                                    mButtonList.get(mCurrentButtonInt - 2).getText().toString(),
-                                    mButtonList.get(mCurrentButtonInt - 1).getText().toString(),
-                            };
-                    if (tempArray[0].equals(mAnswerArray[0])) {
-                        mNumCorrectSpot++;
-                    }
-                    if (tempArray[1].equals(mAnswerArray[1])) {
-                        mNumCorrectSpot++;
-                    }
-                    if (tempArray[2].equals(mAnswerArray[2])) {
-                        mNumCorrectSpot++;
-                    }
-                    if (tempArray[3].equals(mAnswerArray[3])) {
-                        mNumCorrectSpot++;
-                    }
-                    mTextSpots.get(mCurrentNumCorrectSpot).setText("" + mNumCorrectSpot);
+                checkOnClick();
 
-                    for (int i = 0; i < tempArray.length; i++) {
-                        if (tempArray[0].equals(mAnswerArray[i])) {
-                            mNumCorrect++;
-                        }
-                        if (tempArray[1].equals(mAnswerArray[i])) {
-                            mNumCorrect++;
-                        }
-                        if (tempArray[2].equals(mAnswerArray[i])) {
-                            mNumCorrect++;
-                        }
-                        if (tempArray[3].equals(mAnswerArray[i])) {
-                            mNumCorrect++;
-                        }
-                    }
-
-                    mTextNums.get(mCurrentNumCorrectSpot).setText("" + mNumCorrect);
-
-                    if (mNumCorrectSpot == 4) {
-                        mGameObject.addAll(ParseKeys.WINNERS_KEY,
-                                Arrays.asList(new String[]{
-                                        ParseUser.getCurrentUser().getObjectId()}));
-                        ParseUser.getCurrentUser().increment(ParseKeys.TOTAL_WINS_KEY);
-                        try {
-                            mGameObject.save();
-                        } catch (ParseException e) {
-                            e.printStackTrace();
-                        }
-                        AlertDialog.Builder builder = new AlertDialog.Builder(
-                                GameActivity.this);
-                        builder.setMessage("You have won")
-                                .setCancelable(false)
-                                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                                    public void onClick(DialogInterface dialog, int id) {
-                                        endGame();
-                                    }
-                                });
-                        builder.setTitle("Winner!");
-                        AlertDialog alert = builder.create();
-                        alert.show();
-                    }
-
-                    Log.d("testLog", "testLog");
-                    ParseObject guess = new ParseObject("Guess");
-                    guess.put(ParseKeys.CORRECT_NUM_KEY, mNumCorrect);
-                    guess.put(ParseKeys.CORRECT_SPOT_KEY, mNumCorrectSpot);
-                    guess.addAll(ParseKeys.GUESS_KEY, Arrays.asList(tempArray));
-                    guess.put(ParseKeys.ROUND_KEY, mCurrentNumCorrectSpot + 1);
-                    guess.put(ParseKeys.GAME_KEY, mGameObject);
-                    guess.put(ParseKeys.PLAYER_KEY, ParseUser.getCurrentUser());
-                    guess.saveInBackground();
-                    mNumCorrectSpot = 0;
-                    mNumCorrect = 0;
-                    mCurrentNumCorrectSpot++;
-                    isChecked = true;
-                    for (Button b : mInputList) {
-
-                        //TODO set color enabled
-                        b.setClickable(true);
-                    }
-                    if (mCurrentNumCorrectSpot == 10) {
-                        ParseUser.getCurrentUser().increment(ParseKeys.TOTAL_LOSSES_KEY);
-                        String code = "";
-                        for (String s : mAnswerArray) {
-                            code += s;
-                        }
-                        AlertDialog.Builder builder = new AlertDialog.Builder(
-                                GameActivity.this);
-                        builder.setMessage("The Correct code was " + code)
-                                .setCancelable(false)
-                                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                                    public void onClick(DialogInterface dialog, int id) {
-                                        endGame();
-                                    }
-                                });
-                        builder.setTitle("Game Over");
-                        AlertDialog alert = builder.create();
-                        alert.show();
-                    }
-
-                }
             }
         });
+    }
+
+    public void checkOnClick() {
+        
+        if (mPreviousButtonInt % 4 == 3 && !isChecked) {
+            String[] tempArray = new String[]
+                    {
+                            mButtonList.get(mCurrentButtonInt - 4).getText().toString(),
+                            mButtonList.get(mCurrentButtonInt - 3).getText().toString(),
+                            mButtonList.get(mCurrentButtonInt - 2).getText().toString(),
+                            mButtonList.get(mCurrentButtonInt - 1).getText().toString(),
+                    };
+            if (tempArray[0].equals(mAnswerArray[0])) {
+                mNumCorrectSpot++;
+            }
+            if (tempArray[1].equals(mAnswerArray[1])) {
+                mNumCorrectSpot++;
+            }
+            if (tempArray[2].equals(mAnswerArray[2])) {
+                mNumCorrectSpot++;
+            }
+            if (tempArray[3].equals(mAnswerArray[3])) {
+                mNumCorrectSpot++;
+            }
+            mTextSpots.get(mCurrentNumCorrectSpot).setText("" + mNumCorrectSpot);
+
+            for (int i = 0; i < tempArray.length; i++) {
+                if (tempArray[0].equals(mAnswerArray[i])) {
+                    mNumCorrect++;
+                }
+                if (tempArray[1].equals(mAnswerArray[i])) {
+                    mNumCorrect++;
+                }
+                if (tempArray[2].equals(mAnswerArray[i])) {
+                    mNumCorrect++;
+                }
+                if (tempArray[3].equals(mAnswerArray[i])) {
+                    mNumCorrect++;
+                }
+            }
+
+            mTextNums.get(mCurrentNumCorrectSpot).setText("" + mNumCorrect);
+
+            if (mNumCorrectSpot == 4) {
+                mGameObject.addAll(ParseKeys.WINNERS_KEY,
+                        Arrays.asList(new String[]{
+                                ParseUser.getCurrentUser().getObjectId()}));
+                ParseUser.getCurrentUser().increment(ParseKeys.TOTAL_WINS_KEY);
+                try {
+                    mGameObject.save();
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+                AlertDialog.Builder builder = new AlertDialog.Builder(
+                        GameActivity.this);
+                builder.setMessage("You have won")
+                        .setCancelable(false)
+                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                endGame();
+                            }
+                        });
+                builder.setTitle("Winner!");
+                AlertDialog alert = builder.create();
+                alert.show();
+            }
+
+            Log.d("testLog", "testLog");
+            ParseObject guess = new ParseObject("Guess");
+            guess.put(ParseKeys.CORRECT_NUM_KEY, mNumCorrect);
+            guess.put(ParseKeys.CORRECT_SPOT_KEY, mNumCorrectSpot);
+            guess.addAll(ParseKeys.GUESS_KEY, Arrays.asList(tempArray));
+            guess.put(ParseKeys.ROUND_KEY, mCurrentNumCorrectSpot + 1);
+            guess.put(ParseKeys.GAME_KEY, mGameObject);
+            guess.put(ParseKeys.PLAYER_KEY, ParseUser.getCurrentUser());
+            guess.saveInBackground();
+            mNumCorrectSpot = 0;
+            mNumCorrect = 0;
+            mCurrentNumCorrectSpot++;
+            isChecked = true;
+            for (Button b : mInputList) {
+
+                //TODO set color enabled
+                b.setClickable(true);
+            }
+            if (mCurrentNumCorrectSpot == 10) {
+                ParseUser.getCurrentUser().increment(ParseKeys.TOTAL_LOSSES_KEY);
+                String code = "";
+                for (String s : mAnswerArray) {
+                    code += s;
+                }
+                AlertDialog.Builder builder = new AlertDialog.Builder(
+                        GameActivity.this);
+                builder.setMessage("The Correct code was " + code)
+                        .setCancelable(false)
+                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                endGame();
+                            }
+                        });
+                builder.setTitle("Game Over");
+                AlertDialog alert = builder.create();
+                alert.show();
+            }
+
+        }
     }
 
     public void endGame() {
