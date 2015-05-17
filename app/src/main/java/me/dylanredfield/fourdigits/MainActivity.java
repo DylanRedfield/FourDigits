@@ -8,7 +8,6 @@ import android.graphics.Typeface;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.text.InputType;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -26,27 +25,19 @@ import com.parse.FunctionCallback;
 import com.parse.ParseAnonymousUtils;
 import com.parse.ParseCloud;
 import com.parse.ParseException;
-import com.parse.ParseInstallation;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.ParseRelation;
 import com.parse.ParseUser;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Objects;
-
 
 public class MainActivity extends ActionBarActivity {
 
 
-    private boolean isFirstTime;
     private ParseUser mCurrentUser;
-    private ParseInstallation mInstallation;
     private ListView mListView;
     private GamesAdapter mAdapter;
     private ParseQuery<ParseObject> mGamesQuery;
@@ -74,7 +65,6 @@ public class MainActivity extends ActionBarActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        Log.d("onResumeTest", "test");
 
         makeObjects();
 
@@ -118,6 +108,11 @@ public class MainActivity extends ActionBarActivity {
         } catch (ParseException e) {
             e.printStackTrace();
         }
+        setUserInfo();
+
+    }
+
+    public void setUserInfo() {
         if (mCurrentUser != null) {
             if (ParseAnonymousUtils.isLinked(mCurrentUser)) {
                 mUsernameText.setText("Not Logged In");
@@ -125,31 +120,27 @@ public class MainActivity extends ActionBarActivity {
                 mUsernameText.setText(mCurrentUser.getUsername());
             }
 
-            //TODO record only works after winning a game
-            mRecord.setText("" + mCurrentUser.getInt(ParseKeys.TOTAL_WINS_KEY) + "-" +
-                    mCurrentUser.getInt(ParseKeys.TOTAL_LOSSES_KEY));
+            mRecord.setText("" + mCurrentUser.getInt(Keys.TOTAL_WINS_KEY) + "-" +
+                    mCurrentUser.getInt(Keys.TOTAL_LOSSES_KEY));
         }
     }
 
     public void queryParse() {
 
-        Log.d("listTest", "queryParse");
-        mGamesQuery = ParseQuery.getQuery("Game");
-        mGamesQuery.whereEqualTo(ParseKeys.PLAYERS_KEY, mCurrentUser);
-        mGamesQuery.include(ParseKeys.GAME_TYPE_KEY);
-        mGamesQuery.orderByDescending("updatedAt");
+        mGamesQuery = ParseQuery.getQuery(Keys.GAME_KEY);
+        mGamesQuery.whereEqualTo(Keys.PLAYERS_KEY, mCurrentUser);
+        mGamesQuery.include(Keys.GAME_TYPE_KEY);
+        mGamesQuery.orderByDescending(Keys.UPDATED_AT_KEY);
 
         if (mCurrentUser != null) {
             mGamesQuery.findInBackground(new FindCallback<ParseObject>() {
                 @Override
                 public void done(List<ParseObject> parseObjects, ParseException e) {
-                    Log.d("listTest", "done");
                     if (firstQuery) {
                         mGameOverList.clear();
                         mTheirTurnList.clear();
                         mYourTurnList.clear();
                         mGameList.clear();
-                        Log.d("listTest", "first");
                         firstQuery = false;
                         for (ParseObject p : parseObjects) {
                             mGameList.add(p);
@@ -157,14 +148,14 @@ public class MainActivity extends ActionBarActivity {
 
                         for (int i = 0; i < mGameList.size(); i++) {
 
-                            if (mGameList.get(i).getBoolean(ParseKeys.IS_OVER_KEY)
+                            if (mGameList.get(i).getBoolean(Keys.IS_OVER_KEY)
                                     && mGameOverList.size() < 10) {
                                 mGameOverList.add(mGameList.get(i));
                             } else {
                                 String[] tempArray = new String[1];
                                 tempArray = mGameList.get(i)
-                                        .getList(ParseKeys.USERS_TURN_KEY).toArray(tempArray);
-                                if(contains(tempArray)) {
+                                        .getList(Keys.USERS_TURN_KEY).toArray(tempArray);
+                                if (contains(tempArray)) {
                                     mYourTurnList.add(mGameList.get(i));
                                 } else {
                                     mTheirTurnList.add(mGameList.get(i));
@@ -186,7 +177,7 @@ public class MainActivity extends ActionBarActivity {
 
     public boolean contains(String[] tempArray) {
         for (String s : tempArray) {
-            if (s.equals(mCurrentUser.getObjectId())) {
+            if (s != null && s.equals(mCurrentUser.getObjectId())) {
                 return true;
             }
         }
@@ -194,11 +185,11 @@ public class MainActivity extends ActionBarActivity {
     }
 
     public void queryParseForInvites() {
-        ParseQuery<ParseObject> inviteQuery = ParseQuery.getQuery("Invite");
-        inviteQuery.whereEqualTo(ParseKeys.INVITED_USERS_KEY, mCurrentUser);
-        inviteQuery.whereNotEqualTo(ParseKeys.ACCEPTED_USERS_KEY, mCurrentUser);
-        inviteQuery.include(ParseKeys.GAME_TYPE_KEY);
-        inviteQuery.orderByDescending(ParseKeys.UPDATED_AT_KEY);
+        ParseQuery<ParseObject> inviteQuery = ParseQuery.getQuery(Keys.INVITE_KEY);
+        inviteQuery.whereEqualTo(Keys.INVITED_USERS_KEY, mCurrentUser);
+        inviteQuery.whereNotEqualTo(Keys.ACCEPTED_USERS_KEY, mCurrentUser);
+        inviteQuery.include(Keys.GAME_TYPE_KEY);
+        inviteQuery.orderByDescending(Keys.UPDATED_AT_KEY);
         inviteQuery.findInBackground(new FindCallback<ParseObject>() {
             @Override
             public void done(List<ParseObject> parseObjects, ParseException e) {
@@ -217,7 +208,6 @@ public class MainActivity extends ActionBarActivity {
         mNewGame.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.d("buttonTest", "shit");
                 Intent i = new Intent(getApplicationContext(), SelectGameActivity.class);
                 startActivity(i);
             }
@@ -230,6 +220,22 @@ public class MainActivity extends ActionBarActivity {
         // Inflate the menu items for use in the action bar
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.menu_main, menu);
+        MenuItem signUp = menu.findItem(R.id.sign_up);
+        MenuItem signIn = menu.findItem(R.id.sign_in);
+        MenuItem addFriend = menu.findItem(R.id.add_friend);
+        MenuItem logOut = menu.findItem(R.id.log_out);
+
+        if (ParseAnonymousUtils.isLinked(ParseUser.getCurrentUser())) {
+            signUp.setVisible(true);
+            signIn.setVisible(true);
+            addFriend.setVisible(false);
+            logOut.setVisible(false);
+        } else {
+            signUp.setVisible(false);
+            signIn.setVisible(false);
+            addFriend.setVisible(true);
+            logOut.setVisible(true);
+        }
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -244,75 +250,97 @@ public class MainActivity extends ActionBarActivity {
                 Intent i = new Intent(getApplicationContext(), CreateAccountActivity.class);
                 startActivity(i);
                 return true;
+            case R.id.log_out:
+                logOut();
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
     }
 
     public void addFriend() {
-        {
-            AlertDialog.Builder alert = new AlertDialog.Builder(MainActivity.this);
+        AlertDialog.Builder alert = new AlertDialog.Builder(MainActivity.this);
 
-            final EditText edittext = new EditText(MainActivity.this);
-            edittext.setInputType(InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
-            alert.setMessage("Ensure the username is correct before adding");
-            alert.setTitle("New Friend");
+        final EditText edittext = new EditText(MainActivity.this);
+        edittext.setInputType(InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
+        alert.setMessage("Ensure the username is correct before adding");
+        alert.setTitle("New Friend");
 
-            alert.setView(edittext);
+        alert.setView(edittext);
 
-            alert.setPositiveButton("Add", new DialogInterface.OnClickListener() {
-                public void onClick(DialogInterface dialog, int whichButton) {
-                    //What ever you want to do with the value
-                    String inputUsername = edittext.getText()
-                            .toString().trim().toLowerCase();
+        alert.setPositiveButton("Add", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+                //What ever you want to do with the value
+                String inputUsername = edittext.getText()
+                        .toString().trim().toLowerCase();
 
-                    ParseQuery userQuery = ParseUser.getQuery();
-                    userQuery.whereEqualTo("username", inputUsername);
+                ParseQuery userQuery = ParseUser.getQuery();
+                userQuery.whereEqualTo(Keys.USERNAME_KEY, inputUsername);
 
-                    try {
-                        if (userQuery.count() > 0 && !(userQuery.getFirst().getObjectId()
-                                .equals(mCurrentUser.getObjectId()))) {
-                            ParseRelation myFriends = ParseUser.getCurrentUser()
-                                    .getRelation(ParseKeys.FRIENDS_KEY);
-                            myFriends.add(userQuery.getFirst());
-                            mCurrentUser.save();
-                            HashMap<String, Object> params = new HashMap<String, Object>();
+                try {
+                    if (userQuery.count() > 0 && !(userQuery.getFirst().getObjectId()
+                            .equals(mCurrentUser.getObjectId()))) {
+                        ParseRelation myFriends = ParseUser.getCurrentUser()
+                                .getRelation(Keys.FRIENDS_KEY);
+                        myFriends.add(userQuery.getFirst());
+                        mCurrentUser.save();
+                        HashMap<String, Object> params = new HashMap<String, Object>();
 
-                            params.put("friendId", userQuery.getFirst().getObjectId());
-                            params.put("myName", ParseUser.getCurrentUser().getUsername());
+                        params.put("friendId", userQuery.getFirst().getObjectId());
+                        params.put("myName", ParseUser.getCurrentUser().getUsername());
 
-                            ParseCloud.callFunctionInBackground
-                                    ("addFriend", params, new FunctionCallback<String>() {
-                                        @Override
-                                        public void done(String s, ParseException e) {
-                                            if (e == null) {
-                                                mCurrentUser.increment
-                                                        (ParseKeys.NUM_FRIENDS_KEY);
-                                                mCurrentUser.saveInBackground();
-                                                Log.d("addFriend", "added");
+                        ParseCloud.callFunctionInBackground
+                                ("addFriend", params, new FunctionCallback<String>() {
+                                    @Override
+                                    public void done(String s, ParseException e) {
+                                        if (e == null) {
+                                            mCurrentUser.increment
+                                                    (Keys.NUM_FRIENDS_KEY);
+                                            mCurrentUser.saveInBackground();
 
-                                            } else {
-
-                                                Log.d("addFriend", "failed");
-                                            }
                                         }
-                                    });
-                        }
-                    } catch (ParseException e) {
-                        e.printStackTrace();
+                                    }
+                                });
                     }
-
+                } catch (ParseException e) {
+                    e.printStackTrace();
                 }
-            });
 
-            alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                public void onClick(DialogInterface dialog, int whichButton) {
-                    // what ever you want to do with No option.
-                }
-            });
+            }
+        });
 
-            alert.show();
+        alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+                // what ever you want to do with No option.
+            }
+        });
+
+        alert.show();
+    }
+
+    public void logOut() {
+        ParseUser.logOut();
+        mCurrentUser = ParseUser.getCurrentUser();
+
+        mCurrentUser.put(Keys.COINS_KEY, 0);
+        mCurrentUser.put(Keys.COLLAB_WINS_KEY, 0);
+        mCurrentUser.put(Keys.NUM_FRIENDS_KEY, 0);
+        mCurrentUser.put(Keys.SINGLE_LOSSES_KEY, 0);
+        mCurrentUser.put(Keys.SINGLE_WINS_KEY, 0);
+        mCurrentUser.put(Keys.TOTAL_LOSSES_KEY, 0);
+        mCurrentUser.put(Keys.TOTAL_TIES_KEY, 0);
+        mCurrentUser.put(Keys.TOTAL_WINS_KEY, 0);
+        mCurrentUser.put(Keys.VS_LOSSES_KEY, 0);
+        mCurrentUser.put(Keys.VS_TIES_KEY, 0);
+        mCurrentUser.put(Keys.VS_WINS_KEY, 0);
+        mCurrentUser.put(Keys.COLLAB_LOSSES_KEY, 0);
+        try {
+            mCurrentUser.save();
+        } catch (ParseException e) {
+            e.printStackTrace();
         }
+        setUserInfo();
+        queryParse();
     }
 
     public class GamesAdapter extends BaseAdapter {
@@ -399,22 +427,31 @@ public class MainActivity extends ActionBarActivity {
             if (ParseAnonymousUtils.isLinked(ParseUser.getCurrentUser())) {
                 name.setText("You");
             } else {
-                name.setText(mFullList.get(position).getString(ParseKeys.PLAYER_STRINGS_KEY));
+                name.setText(mFullList.get(position).getString(Keys.PLAYER_STRINGS_KEY));
             }
-            String type = "";
+            String type;
 
-            type = mFullList.get(position).getParseObject(ParseKeys.GAME_TYPE_KEY)
+            type = mFullList.get(position).getParseObject(Keys.GAME_TYPE_KEY)
                     .getString("type");
 
-            if (type.equals("WhoFirst") || type.equals("Single")) {
+            if (type.equals(Keys.GAME_TYPE_WHO_FIRST_STRING)) {
                 type = "vs";
+            } else if (type.equals(Keys.GAME_TYPE_SINGLE_STRING)) {
+                type = "single";
             } else {
                 type = "collaborative";
             }
             gameType.setText(type);
 
-            if (position >= mInvites.size()) {
-                String[] list = mFullList.get(position).getList(ParseKeys.USERS_TURN_KEY)
+
+            if (position < mInvites.size()) {
+                action.setText("accept");
+                action.getBackground().setColorFilter(getResources().getColor(R.color.orange),
+                        PorterDuff.Mode.DARKEN);
+
+                action.setVisibility(View.VISIBLE);
+            } else if (position < mInvites.size() + mYourTurnList.size()) {
+                String[] list = mFullList.get(position).getList(Keys.USERS_TURN_KEY)
                         .toArray(new String[0]);
 
                 for (int i = 0; i < list.length; i++) {
@@ -422,24 +459,26 @@ public class MainActivity extends ActionBarActivity {
                         indexInArray = i;
                     }
                 }
-                info.setText("" + mFullList.get(position).getList("guessesRemaining")
-                        .toArray(new Integer[1])[indexInArray].intValue() + " left");
-            }
-
-            if (position < mInvites.size()) {
-                action.setText("accept");
-                action.getBackground().setColorFilter(getResources().getColor(R.color.orange),
-                        PorterDuff.Mode.DARKEN);
-            } else if (position < mInvites.size() + mYourTurnList.size()) {
                 action.setText("Play");
-            } else if (position < mInvites.size() + mYourTurnList.size() + mTheirTurnList.size()) {
-                action.setVisibility(View.GONE);
+                info.setText("" + mFullList.get(position).getList("guessesRemaining")
+                        .toArray(new Integer[0])[indexInArray] + " left");
+
+                action.setVisibility(View.VISIBLE);
+                action.getBackground().setColorFilter(getResources()
+                        .getColor(R.color.button_white), PorterDuff.Mode.SRC_OVER);
+            } else if (position < mInvites.size() + mYourTurnList.size()
+                    + mTheirTurnList.size()) {
+                action.setText("nudge");
+                action.getBackground().setColorFilter(getResources().getColor(R.color.orange),
+                        PorterDuff.Mode.SRC_OVER);
+
+                action.setVisibility(View.VISIBLE);
             } else if (position < mInvites.size() + mYourTurnList.size() + mTheirTurnList.size()
                     + mGameOverList.size()) {
-                action.setVisibility(View.GONE);
 
-                if (mFullList.get(position).getList(ParseKeys.WINNERS_KEY) != null) {
-                    String[] winnerList = mFullList.get(position).getList(ParseKeys.WINNERS_KEY)
+                action.setVisibility(View.GONE);
+                if (mFullList.get(position).getList(Keys.WINNERS_KEY) != null) {
+                    String[] winnerList = mFullList.get(position).getList(Keys.WINNERS_KEY)
                             .toArray(new String[0]);
                     for (int i = 0; i < winnerList.length; i++) {
                         if (mCurrentUser.getObjectId().equals(winnerList[i])) {
@@ -455,56 +494,52 @@ public class MainActivity extends ActionBarActivity {
                 }
 
 
-                RelativeLayout.LayoutParams params =
+                /*RelativeLayout.LayoutParams params =
                         (RelativeLayout.LayoutParams) info.getLayoutParams();
                 params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
 
-                info.setLayoutParams(params); //causes layout update
+                info.setLayoutParams(params); //causes layout update */
             }
 
             action.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     if (((Button) v).getText().toString().equals("accept")) {
-                        Log.d("acceptCheck", "checked");
 
 
                         callCloudCode(position);
 
                     } else {
                         Intent i = new Intent(getApplicationContext(), GameActivity.class);
-                        i.putExtra(ParseKeys.OBJECT_ID_STRING,
+                        i.putExtra(Keys.OBJECT_ID_STRING,
                                 mFullList.get(position).getObjectId());
                         startActivity(i);
                     }
                 }
             });
-            name.setOnClickListener(new View.OnClickListener()
-
-            {
+            name.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     if (((Button) v).getText().toString().equals("accept")) {
-                        Log.d("acceptCheck", "checked");
                         HashMap<String, Object> params = new HashMap<String, Object>();
 
                         params.put("inviteId", mFullList.get(position).getObjectId());
                         params.put("gameType", mFullList.get(position)
-                                .get(ParseKeys.GAME_TYPE_KEY));
+                                .get(Keys.GAME_TYPE_KEY));
 
                         ParseCloud.callFunctionInBackground
                                 ("canWeStart", params, new FunctionCallback<Object[]>() {
 
                                     @Override
                                     public void done(Object[] objects, ParseException e) {
-                                        boolean canStart = ((Boolean) objects[0]).booleanValue();
+                                        boolean canStart = (Boolean) objects[0];
 
                                         if (canStart) {
                                             //queryParse();
                                             mSelectedObject = (ParseObject) objects[1];
                                             Intent i = new Intent(getApplicationContext(),
                                                     GameActivity.class);
-                                            i.putExtra(ParseKeys.OBJECT_ID_STRING,
+                                            i.putExtra(Keys.OBJECT_ID_STRING,
                                                     mSelectedObject.getObjectId());
                                             startActivity(i);
                                         }
@@ -513,7 +548,8 @@ public class MainActivity extends ActionBarActivity {
                     } else {
 
                         Intent i = new Intent(getApplicationContext(), GameActivity.class);
-                        i.putExtra(ParseKeys.OBJECT_ID_STRING, mFullList.get(position).getObjectId());
+                        i.putExtra(Keys.OBJECT_ID_STRING, mFullList.get(position)
+                                .getObjectId());
                         startActivity(i);
                     }
                 }
@@ -530,22 +566,22 @@ public class MainActivity extends ActionBarActivity {
 
         params.put("inviteId", mFullList.get(position).getObjectId());
         params.put("gameType", ((ParseObject) mFullList.get(position)
-                .get(ParseKeys.GAME_TYPE_KEY)).getString("type"));
+                .get(Keys.GAME_TYPE_KEY)).getString("type"));
         ParseCloud.callFunctionInBackground
                 ("canWeStart", params, new FunctionCallback<ArrayList>() {
 
                     @Override
                     public void done(ArrayList objects, ParseException e) {
                         if (e == null) {
-                            boolean canStart = false;
-                            canStart = ((Boolean) objects.get(0)).booleanValue();
+                            boolean canStart;
+                            canStart = (Boolean) objects.get(0);
 
                             if (canStart) {
                                 //queryParse();
                                 mSelectedObject = (ParseObject) objects.get(1);
                                 Intent i = new Intent(getApplicationContext(),
                                         GameActivity.class);
-                                i.putExtra(ParseKeys.OBJECT_ID_STRING,
+                                i.putExtra(Keys.OBJECT_ID_STRING,
                                         mSelectedObject.getObjectId());
                                 startActivity(i);
                             } else {

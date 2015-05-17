@@ -1,6 +1,6 @@
 package me.dylanredfield.fourdigits;
 
-public class ParseKeys {
+public class Keys {
     public static String OBJECT_ID_STRING = "OBJECT_ID";
     public static String PREF_STRING = "SHARED_PREFERENCES";
     public static String FIRST_TIME_STRING = "FIRST_TIME";
@@ -23,6 +23,7 @@ public class ParseKeys {
     public static String CODE_KEY = "code";
     public static String IS_OVER_KEY = "isOver";
 
+    public static String INVITE_KEY = "Invite";
 
     public static String CORRECT_NUM_KEY = "correctNum";
     public static String CORRECT_SPOT_KEY = "correctSpot";
@@ -40,6 +41,8 @@ public class ParseKeys {
     public static String USERS_TURN_KEY = "usersTurn";
     public static String GAME_TYPE_KEY = "GameType";
 
+    public static String COLLAB_GUESS = "CollaborativeGuess";
+    public static String WHOSE_TURN_KEY = "whoseTurn";
     public static String UPDATED_AT_KEY = "updatedAt";
     public static String GAME_TYPE_COLLAB = "OlTiCKLYM0";
     public static String GAME_TYPE_WHO_FIRST = "VO1JEboYcd";

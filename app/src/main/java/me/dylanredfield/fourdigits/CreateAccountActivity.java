@@ -2,7 +2,6 @@ package me.dylanredfield.fourdigits;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
@@ -46,13 +45,14 @@ public class CreateAccountActivity extends ActionBarActivity {
 
         defualtViewValues();
     }
+
     public void defualtViewValues() {
         mRegister.setTypeface(mFont);
         mAlreadyHave.setTypeface(mFont);
     }
 
     public void setListeners() {
-                mRegister.setOnClickListener(new View.OnClickListener() {
+        mRegister.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 checkValidInputs();
@@ -91,7 +91,7 @@ public class CreateAccountActivity extends ActionBarActivity {
     public void makeUser() {
         mUser.setUsername(mUserName.getText().toString().trim().toLowerCase());
         mUser.setPassword(mPassWord.getText().toString().trim());
-        mUser.put("firstName", mFirstName.getText().toString().trim());
+        mUser.put(Keys.FIRST_NAME_KEY, mFirstName.getText().toString().trim());
 
         try {
             mUser.signUp();

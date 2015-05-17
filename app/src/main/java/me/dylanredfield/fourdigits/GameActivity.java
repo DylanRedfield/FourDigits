@@ -16,12 +16,13 @@ import com.parse.ParseCloud;
 import com.parse.ParseException;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
+import com.parse.ParseRelation;
 import com.parse.ParseUser;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Objects;
+import java.util.List;
 
 public class GameActivity extends ActionBarActivity {
     private ParseObject mGameObject;
@@ -44,6 +45,8 @@ public class GameActivity extends ActionBarActivity {
     private ParseQuery mGamesQuery;
     private ParseUser mCurrentUser;
     private ParseObject mVsGame;
+    private HashMap<String, Object> params;
+    private HashMap<String, Object> params2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,16 +66,17 @@ public class GameActivity extends ActionBarActivity {
 
     public void getStuff() {
 
+
         mCurrentUser = ParseUser.getCurrentUser();
 
         try {
-            mGameObject = ParseObject.createWithoutData("Game", getIntent()
-                    .getStringExtra(ParseKeys.OBJECT_ID_STRING)).fetchIfNeeded();
+            mGameObject = ParseObject.createWithoutData(Keys.GAME_KEY, getIntent()
+                    .getStringExtra(Keys.OBJECT_ID_STRING)).fetchIfNeeded();
         } catch (ParseException e) {
             e.printStackTrace();
         }
         mAnswerArray = new String[4];
-        mAnswerArray = mGameObject.getList(ParseKeys.CODE_KEY).toArray(mAnswerArray);
+        mAnswerArray = mGameObject.getList(Keys.CODE_KEY).toArray(mAnswerArray);
 
         mFont = Typeface.createFromAsset(getAssets(), "Arista_2.ttf");
 
@@ -83,15 +87,16 @@ public class GameActivity extends ActionBarActivity {
         mTextNums = new ArrayList<TextView>();
 
         try {
-            mGameType = mGameObject.getParseObject("GameType").fetchIfNeeded().getString("type");
+            mGameType = mGameObject.getParseObject(Keys.GAME_TYPE_KEY)
+                    .fetchIfNeeded().getString("type");
         } catch (ParseException e) {
             e.printStackTrace();
         }
 
-        if (mGameType.equals("WhoFirst")) {
+        if (mGameType.equals(Keys.GAME_TYPE_WHO_FIRST_STRING)) {
             ParseQuery vsQuery = ParseQuery.getQuery("VsGame");
-            vsQuery.whereEqualTo(ParseKeys.GAME_KEY, mGameObject);
-            vsQuery.whereEqualTo(ParseKeys.PLAYER_KEY, mCurrentUser);
+            vsQuery.whereEqualTo(Keys.GAME_KEY, mGameObject);
+            vsQuery.whereEqualTo(Keys.PLAYER_KEY, mCurrentUser);
 
             try {
                 mVsGame = vsQuery.getFirst();
@@ -101,28 +106,29 @@ public class GameActivity extends ActionBarActivity {
 
         }
 
+        params = new HashMap<String, Object>();
+        params2 = new HashMap<String, Object>();
     }
 
     public void queryParse() {
 
         mGamesQuery = ParseQuery.getQuery("Guess");
-        mGamesQuery.whereEqualTo(ParseKeys.GAME_KEY, mGameObject);
+        mGamesQuery.whereEqualTo(Keys.GAME_KEY, mGameObject);
 
-        if (mGameType.equals(ParseKeys.GAME_TYPE_WHO_FIRST_STRING)
-                || mGameType.equals(ParseKeys.GAME_TYPE_SINGLE_STRING)) {
-            mGamesQuery.whereEqualTo(ParseKeys.PLAYER_KEY, mCurrentUser);
+        if (mGameType.equals(Keys.GAME_TYPE_WHO_FIRST_STRING)
+                || mGameType.equals(Keys.GAME_TYPE_SINGLE_STRING)) {
+            mGamesQuery.whereEqualTo(Keys.PLAYER_KEY, mCurrentUser);
             //TODO popup with guess numbers
         }
-        mGamesQuery.orderByAscending(ParseKeys.ROUND_KEY);
+        mGamesQuery.orderByAscending(Keys.ROUND_KEY);
 
 
         try {
             ArrayList<ParseObject> guessList = (ArrayList<ParseObject>) mGamesQuery.find();
 
             for (int i = 0; i < guessList.size(); i++) {
-                Log.d("listTest", "queryParse");
                 String[] tempGuess = new String[4];
-                tempGuess = guessList.get(i).getList(ParseKeys.GUESS_KEY).toArray(tempGuess);
+                tempGuess = guessList.get(i).getList(Keys.GUESS_KEY).toArray(tempGuess);
                 mButtonList.get(i * 4).setText(tempGuess[0]);
                 mButtonList.get(i * 4 + 1).setText(tempGuess[1]);
                 mButtonList.get(i * 4 + 2).setText(tempGuess[2]);
@@ -141,12 +147,12 @@ public class GameActivity extends ActionBarActivity {
                         getResources().getColor(R.color.button_white),
                         PorterDuff.Mode.LIGHTEN);
                 mTextNums.get(i).setText("" +
-                        guessList.get(i).getInt(ParseKeys.CORRECT_NUM_KEY));
+                        guessList.get(i).getInt(Keys.CORRECT_NUM_KEY));
                 mTextSpots.get(i).setText("" +
-                        guessList.get(i).getInt(ParseKeys.CORRECT_SPOT_KEY));
+                        guessList.get(i).getInt(Keys.CORRECT_SPOT_KEY));
 
                 if (i == guessList.size() - 1) {
-                    mCurrentNumCorrectSpot = guessList.get(i).getInt(ParseKeys.ROUND_KEY);
+                    mCurrentNumCorrectSpot = guessList.get(i).getInt(Keys.ROUND_KEY);
                     mCurrentButtonInt = i * 4 + 4;
                 }
             }
@@ -262,47 +268,12 @@ public class GameActivity extends ActionBarActivity {
             b.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    /*if (((Button) v).getText().toString().equals("0") &&
-                            mCurrentButtonInt % 4 != 0) {
-                        Log.d("backtest", "test");
-                        mPreviousButtonInt--;
-                        mCurrentButtonInt--;
-                        mButtonList.get(mCurrentButtonInt).getBackground().setColorFilter(
-                                getResources().getColor(R.color.dark_purple),
-                                PorterDuff.Mode.DARKEN);
-                        mButtonList.get(mCurrentButtonInt).setClickable(true);
-                    }*/
-                    if (mPreviousButtonInt % 4 == 3 && !isChecked) {
-                        AlertDialog.Builder builder = new AlertDialog.Builder(
-                                GameActivity.this);
-                        builder.setMessage("Check Row First!")
-                                .setCancelable(false)
-                                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                                    public void onClick(DialogInterface dialog, int id) {
-                                        //do things
-                                    }
-                                });
-                        builder.setTitle("Stop!");
-                        AlertDialog alert = builder.create();
-                        alert.show();
-                    } else {
-                        isChecked = false;
-                        mInput = Integer.parseInt(((Button) v).getText().toString());
-                        mButtonList.get(mCurrentButtonInt).setText("" + mInput);
-                        mButtonList.get(mCurrentButtonInt).getBackground().setColorFilter(
-                                getResources().getColor(R.color.button_white),
-                                PorterDuff.Mode.LIGHTEN);
-                        mCurrentButtonInt++;
-                        mPreviousButtonInt++;
-
-                        //TODO set color disabled
-                        v.setClickable(false);
-                    }
-
+                    inputOnClick(v);
                 }
             });
 
         }
+        mInputList.get(9).setClickable(false);
 
         for (TextView t : mTextLabels) {
             t.setTypeface(mFont);
@@ -320,103 +291,123 @@ public class GameActivity extends ActionBarActivity {
         });
     }
 
+    public void inputOnClick(View v) {
+        if (((Button) v).getText().toString().equals("0")) {
+            deleteInput();
+        } else if (mPreviousButtonInt % 4 == 3 && !isChecked) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(
+                    GameActivity.this);
+            builder.setMessage("Check Row First!")
+                    .setCancelable(false)
+                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            //do things
+                        }
+                    });
+            builder.setTitle("Stop!");
+            AlertDialog alert = builder.create();
+            alert.show();
+        } else {
+            mInputList.get(9).setClickable(true);
+            isChecked = false;
+            mInput = Integer.parseInt(((Button) v).getText().toString());
+            mButtonList.get(mCurrentButtonInt).setText("" + mInput);
+            mButtonList.get(mCurrentButtonInt).getBackground().setColorFilter(
+                    getResources().getColor(R.color.button_white),
+                    PorterDuff.Mode.LIGHTEN);
+            mCurrentButtonInt++;
+            mPreviousButtonInt++;
+
+            //TODO set color disabled
+            v.setClickable(false);
+        }
+    }
+    public void enableAll() {
+        for(Button b : mInputList) {
+            b.setClickable(true);
+        }
+        mInputList.get(9).setClickable(false);
+    }
+    public void disableAll() {
+        for(Button b : mInputList) {
+            b.setClickable(false);
+        }
+        mInputList.get(9).setClickable(true);
+    }
+
+    public void deleteInput() {
+        mCurrentButtonInt--;
+        mPreviousButtonInt--;
+        mInputList.get(Integer.parseInt(mButtonList.get(mCurrentButtonInt).getText()
+                .toString()) - 1).setClickable(true);
+        mButtonList.get(mCurrentButtonInt).setText("");
+        mButtonList.get(mCurrentButtonInt).getBackground().setColorFilter(
+                getResources().getColor(R.color.dark_purple), PorterDuff.Mode.DARKEN);
+        if (mCurrentButtonInt % 4 == 0) {
+            mInputList.get(9).setClickable(false);
+        }
+
+    }
+
     public void checkOnClick() {
         try {
             mGameObject.fetch();
-            mVsGame.fetch();
+            if (mGameType.equals(Keys.GAME_TYPE_WHO_FIRST_STRING)) {
+                mVsGame.fetch();
+            }
         } catch (ParseException e) {
             e.printStackTrace();
         }
 
-        if (mGameType.equals(ParseKeys.GAME_TYPE_COLLAB_STRING)) {
+        if (mGameType.equals(Keys.GAME_TYPE_COLLAB_STRING)) {
+            if (mPreviousButtonInt % 4 == 3 && !isChecked) {
+                mInputList.get(9).setClickable(false);
+                mGameObject.getRelation(Keys.WHOSE_TURN_KEY).remove(mCurrentUser);
+                List tempArray = mGameObject.getList(Keys.USERS_TURN_KEY);
+
+                for (int i = 0; i < tempArray.size(); i++) {
+                    if (tempArray.get(i).equals(mCurrentUser.getObjectId())) {
+                        tempArray.remove(i);
+                    }
+                }
+
+                mGameObject.put(Keys.USERS_TURN_KEY, tempArray);
+                try {
+                    mGameObject.save();
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+                //TODO push notification idk for what
+
+                ParseObject guess = new ParseObject(Keys.COLLAB_GUESS);
+                guess.put(Keys.PLAYER_KEY, mCurrentUser);
+                guess.addAll(Keys.GUESS_KEY, Arrays.asList(makeGuessArray()));
+                guess.put(Keys.GAME_KEY, mGameObject);
+                guess.put(Keys.ROUND_KEY, mCurrentNumCorrectSpot + 1);
+                try {
+                    guess.save();
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+                collabCloudCode(guess);
+            }
+
 
         } else {
             if (mPreviousButtonInt % 4 == 3 && !isChecked) {
-                String[] tempArray = new String[]
-                        {
-                                mButtonList.get(mCurrentButtonInt - 4).getText().toString(),
-                                mButtonList.get(mCurrentButtonInt - 3).getText().toString(),
-                                mButtonList.get(mCurrentButtonInt - 2).getText().toString(),
-                                mButtonList.get(mCurrentButtonInt - 1).getText().toString(),
-                        };
-                if (tempArray[0].equals(mAnswerArray[0])) {
-                    mNumCorrectSpot++;
-                }
-                if (tempArray[1].equals(mAnswerArray[1])) {
-                    mNumCorrectSpot++;
-                }
-                if (tempArray[2].equals(mAnswerArray[2])) {
-                    mNumCorrectSpot++;
-                }
-                if (tempArray[3].equals(mAnswerArray[3])) {
-                    mNumCorrectSpot++;
-                }
-                mTextSpots.get(mCurrentNumCorrectSpot).setText("" + mNumCorrectSpot);
-
-                for (int i = 0; i < tempArray.length; i++) {
-                    if (tempArray[0].equals(mAnswerArray[i])) {
-                        mNumCorrect++;
-                    }
-                    if (tempArray[1].equals(mAnswerArray[i])) {
-                        mNumCorrect++;
-                    }
-                    if (tempArray[2].equals(mAnswerArray[i])) {
-                        mNumCorrect++;
-                    }
-                    if (tempArray[3].equals(mAnswerArray[i])) {
-                        mNumCorrect++;
-                    }
-                }
-
-                mTextNums.get(mCurrentNumCorrectSpot).setText("" + mNumCorrect);
+                String[] tempArray = incrementPoints();
 
                 if (mNumCorrectSpot == 4) {
-                    if (mGameType.equals(ParseKeys.GAME_TYPE_WHO_FIRST_STRING)) {
-                        whoFirstEndGame();
-                    }
-                    mGameObject.addAll(ParseKeys.WINNERS_KEY,
-                            Arrays.asList(new String[]{
-                                    ParseUser.getCurrentUser().getObjectId()}));
-                    ParseUser.getCurrentUser().increment(ParseKeys.TOTAL_WINS_KEY);
-                    try {
-                        mGameObject.save();
-                    } catch (ParseException e) {
-                        e.printStackTrace();
-                    }
-                    AlertDialog.Builder builder = new AlertDialog.Builder(
-                            GameActivity.this);
-                    builder.setMessage("You have won")
-                            .setCancelable(false)
-                            .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int id) {
-                                    endGame();
-                                }
-                            });
-                    builder.setTitle("Winner!");
-                    AlertDialog alert = builder.create();
-                    alert.show();
-                }
+                    ifWinGame();
 
-                Log.d("testLog", "testLog");
-                ParseObject guess = new ParseObject("Guess");
-                guess.put(ParseKeys.CORRECT_NUM_KEY, mNumCorrect);
-                guess.put(ParseKeys.CORRECT_SPOT_KEY, mNumCorrectSpot);
-                guess.addAll(ParseKeys.GUESS_KEY, Arrays.asList(tempArray));
-                guess.put(ParseKeys.ROUND_KEY, mCurrentNumCorrectSpot + 1);
-                guess.put(ParseKeys.GAME_KEY, mGameObject);
-                guess.put(ParseKeys.PLAYER_KEY, ParseUser.getCurrentUser());
-                guess.saveInBackground();
-                mNumCorrectSpot = 0;
-                mNumCorrect = 0;
-                mCurrentNumCorrectSpot++;
-                isChecked = true;
-                for (Button b : mInputList) {
-
-                    //TODO set color enabled
-                    b.setClickable(true);
-                }
-                if (mCurrentNumCorrectSpot == 10) {
-                    ParseUser.getCurrentUser().increment(ParseKeys.TOTAL_LOSSES_KEY);
+                } else if (mCurrentNumCorrectSpot < 9
+                        && mGameType.equals(Keys.GAME_TYPE_WHO_FIRST_STRING)) {
+                    if (mGameType.equals(Keys.GAME_TYPE_WHO_FIRST_STRING)) {
+                        ifDidNotLose();
+                    }
+                } else if (mCurrentNumCorrectSpot >= 9 &&
+                        mGameType.equals(Keys.GAME_TYPE_SINGLE_STRING)) {
+                    ParseUser.getCurrentUser().increment(Keys.TOTAL_LOSSES_KEY);
                     String code = "";
                     for (String s : mAnswerArray) {
                         code += s;
@@ -435,9 +426,270 @@ public class GameActivity extends ActionBarActivity {
                     alert.show();
                 }
 
+                ParseObject guess = new ParseObject("Guess");
+                guess.put(Keys.CORRECT_NUM_KEY, mNumCorrect);
+                guess.put(Keys.CORRECT_SPOT_KEY, mNumCorrectSpot);
+                guess.addAll(Keys.GUESS_KEY, Arrays.asList(tempArray));
+                guess.put(Keys.ROUND_KEY, mCurrentNumCorrectSpot + 1);
+                guess.put(Keys.GAME_KEY, mGameObject);
+                guess.put(Keys.PLAYER_KEY, ParseUser.getCurrentUser());
+                guess.saveInBackground();
+                if (mGameType.equals(Keys.GAME_TYPE_SINGLE_STRING)) {
+                    mGameObject.put(Keys.GUESSES_REMAINING,
+                            Arrays.asList(new Integer[]{9 - mCurrentNumCorrectSpot}));
+                    try {
+                        mGameObject.save();
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                    }
+                }
+                mNumCorrectSpot = 0;
+                mNumCorrect = 0;
+                mCurrentNumCorrectSpot++;
+                isChecked = true;
+
+                enableAll();
+
             }
         }
 
+    }
+
+    public String[] incrementPoints() {
+        String[] tempArray = makeGuessArray();
+
+        if (tempArray[0].equals(mAnswerArray[0])) {
+            mNumCorrectSpot++;
+        }
+        if (tempArray[1].equals(mAnswerArray[1])) {
+            mNumCorrectSpot++;
+        }
+        if (tempArray[2].equals(mAnswerArray[2])) {
+            mNumCorrectSpot++;
+        }
+        if (tempArray[3].equals(mAnswerArray[3])) {
+            mNumCorrectSpot++;
+        }
+        mTextSpots.get(mCurrentNumCorrectSpot).setText("" + mNumCorrectSpot);
+
+        for (int i = 0; i < tempArray.length; i++) {
+            if (tempArray[0].equals(mAnswerArray[i])) {
+                mNumCorrect++;
+            }
+            if (tempArray[1].equals(mAnswerArray[i])) {
+                mNumCorrect++;
+            }
+            if (tempArray[2].equals(mAnswerArray[i])) {
+                mNumCorrect++;
+            }
+            if (tempArray[3].equals(mAnswerArray[i])) {
+                mNumCorrect++;
+            }
+        }
+
+        mTextNums.get(mCurrentNumCorrectSpot).setText("" + mNumCorrect);
+        return tempArray;
+    }
+
+    public String[] makeGuessArray() {
+        String[] tempArray = new String[]
+                {
+                        mButtonList.get(mCurrentButtonInt - 4).getText().toString(),
+                        mButtonList.get(mCurrentButtonInt - 3).getText().toString(),
+                        mButtonList.get(mCurrentButtonInt - 2).getText().toString(),
+                        mButtonList.get(mCurrentButtonInt - 1).getText().toString(),
+                };
+        return tempArray;
+    }
+
+    public void collabCloudCode(ParseObject guess) {
+        final HashMap<String, Object> collabParams = new HashMap<>();
+        collabParams.put("gameId", mGameObject.getObjectId());
+        collabParams.put("roundNum", mCurrentNumCorrectSpot + 1);
+        collabParams.put("numPlayers", mGameObject.getInt("numPlayers"));
+        ParseCloud.callFunctionInBackground("hasEveryoneGuessedC", collabParams,
+                new FunctionCallback<Object>() {
+                    @Override
+                    public void done(Object o, ParseException e) {
+                        if ((Boolean) o) {
+                            HashMap<String, Object> rankGuessesParams =
+                                    new HashMap<String, Object>();
+                            rankGuessesParams.put("gameId", mGameObject.getObjectId());
+                            rankGuessesParams.put("roundNum", mCurrentNumCorrectSpot + 1);
+
+                            ParseCloud.callFunctionInBackground("rankGuesses", rankGuessesParams,
+                                    new FunctionCallback<ArrayList>() {
+                                        @Override
+                                        public void done(ArrayList o, ParseException e) {
+                                            if ((Boolean) o.get(0)) {
+                                                List guessRem = mGameObject
+                                                        .getList(Keys.GUESSES_REMAINING);
+                                                guessRem.set(0, 10 - mCurrentNumCorrectSpot);
+                                                mGameObject.put(Keys.GUESSES_REMAINING,
+                                                        guessRem);
+                                                mGameObject.put(Keys.IS_OVER_KEY, true);
+                                                try {
+                                                    mGameObject.save();
+                                                } catch (ParseException e1) {
+                                                    e1.printStackTrace();
+                                                }
+                                                //TODO reloadui
+                                            } else {
+                                                List guessRem = mGameObject
+                                                        .getList(Keys.GUESSES_REMAINING);
+                                                guessRem.set(0, 10 - mCurrentNumCorrectSpot);
+                                                mGameObject.put(Keys.GUESSES_REMAINING,
+                                                        guessRem);
+                                                try {
+                                                    mGameObject.save();
+                                                } catch (ParseException e1) {
+                                                    e1.printStackTrace();
+                                                }
+
+                                                String player = (String) o.get(1);
+                                                collabAlertDialog(player);
+                                                //TODO update ui
+                                                //TODO allow user to enter new guess
+
+                                            }
+                                        }
+                                    });
+                        } else {
+                            AlertDialog.Builder builder = new AlertDialog.Builder(
+                                    GameActivity.this);
+                            builder.setMessage("Other players need to submit their guess")
+                                    .setCancelable(false)
+                                    .setPositiveButton("OK",
+                                            new DialogInterface.OnClickListener() {
+                                                public void onClick
+                                                        (DialogInterface dialog, int id) {
+                                                    endGame();
+                                                }
+                                            });
+                            builder.setTitle("Whoops!");
+                            AlertDialog alert = builder.create();
+                            alert.show();
+                        }
+
+                    }
+                });
+    }
+
+    public void collabAlertDialog(String x) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(
+                GameActivity.this);
+        builder.setMessage(x + "'s guess was selected")
+                .setCancelable(false)
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        endGame();
+                    }
+                });
+        builder.setTitle("Guess chosen");
+        AlertDialog alert = builder.create();
+        alert.show();
+    }
+    public void updateUiCollab() {
+        //TODO need to get from collabobject
+        List tempGuessList = mGameObject.getList(Keys.GAME_KEY);
+        mButtonList.get(mCurrentButtonInt - 4).setText((String)tempGuessList.get(0));
+        mButtonList.get(mCurrentButtonInt - 3).setText((String)tempGuessList.get(1));
+        mButtonList.get(mCurrentButtonInt - 2).setText((String)tempGuessList.get(2));
+        mButtonList.get(mCurrentButtonInt - 1).setText((String)tempGuessList.get(3));
+    }
+
+    public void ifWinGame() {
+        for (Button b : mInputList) {
+            b.setClickable(false);
+        }
+        ParseRelation relation = mGameObject.getRelation("whoseTurn");
+        relation.remove(mCurrentUser);
+
+        ArrayList<String> list = (ArrayList<String>)
+                mGameObject.get(Keys.USERS_TURN_KEY);
+        ArrayList<Integer> guessesLeft = (ArrayList<Integer>)
+                mGameObject.get(Keys.GUESSES_REMAINING);
+
+        int index = 0;
+
+        for (int i = 0; i < list.size(); i++) {
+            if (mCurrentUser.getObjectId().equals(list.get(i))) {
+                index = i;
+                list.remove(i);
+                guessesLeft.remove(i);
+            }
+        }
+
+        mGameObject.put(Keys.USERS_TURN_KEY, Arrays.asList(list.toArray()));
+        mGameObject.put(Keys.GUESSES_REMAINING,
+                Arrays.asList(guessesLeft.toArray()));
+        try {
+            mGameObject.save();
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        if (mGameType.equals(Keys.GAME_TYPE_WHO_FIRST_STRING)) {
+            whoFirstEndGame();
+        }
+
+        if (mGameType.equals(Keys.GAME_TYPE_SINGLE_STRING)) {
+            mGameObject.addAll(Keys.WINNERS_KEY,
+                    Arrays.asList(new String[]{
+                            ParseUser.getCurrentUser().getObjectId()}));
+            ParseUser.getCurrentUser().increment(Keys.TOTAL_WINS_KEY);
+            try {
+                mGameObject.save();
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+            AlertDialog.Builder builder = new AlertDialog.Builder(
+                    GameActivity.this);
+            builder.setMessage("You have won")
+                    .setCancelable(false)
+                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            endGame();
+                        }
+                    });
+            builder.setTitle("Winner!");
+            AlertDialog alert = builder.create();
+            alert.show();
+        }
+    }
+
+    public void ifDidNotLose() {
+        try {
+            mVsGame.fetch();
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        mVsGame.put(Keys.GUESSES_REMAINING, 9 - mCurrentNumCorrectSpot);
+        ParseRelation relation = mGameObject.getRelation("whoseTurn");
+        relation.remove(mCurrentUser);
+
+        ArrayList<String> list = (ArrayList<String>)
+                mGameObject.get(Keys.USERS_TURN_KEY);
+        ArrayList<Integer> guessesLeft = (ArrayList<Integer>)
+                mGameObject.get(Keys.GUESSES_REMAINING);
+
+        int index = 0;
+
+        for (int i = 0; i < list.size(); i++) {
+            if (mCurrentUser.getObjectId().equals(list.get(i))) {
+                index = i;
+                guessesLeft.set(i, 9 - mCurrentNumCorrectSpot);
+            }
+        }
+
+        mGameObject.put(Keys.USERS_TURN_KEY,
+                Arrays.asList(list.toArray()));
+        mGameObject.put(Keys.GUESSES_REMAINING,
+                Arrays.asList(guessesLeft.toArray()));
+        try {
+            mGameObject.save();
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
     }
 
     public void whoFirstEndGame() {
@@ -447,15 +699,14 @@ public class GameActivity extends ActionBarActivity {
             e.printStackTrace();
         }
 
-        mVsGame.put(ParseKeys.IS_OVER_KEY, true);
-        mVsGame.put(ParseKeys.GUESSES_REMAINING, 10 - mCurrentNumCorrectSpot);
+        mVsGame.put(Keys.IS_OVER_KEY, true);
+        mVsGame.put(Keys.GUESSES_REMAINING, 10 - mCurrentNumCorrectSpot);
         try {
             mVsGame.save();
         } catch (ParseException e) {
             e.printStackTrace();
         }
 
-        final HashMap<String, Object> params = new HashMap<String, Object>();
 
         params.put("gameId", mGameObject.getObjectId());
 
@@ -466,84 +717,23 @@ public class GameActivity extends ActionBarActivity {
                         if (e == null) {
 
                             if (b.booleanValue()) {
-                                mGameObject.put(ParseKeys.IS_OVER_KEY, true);
+                                mGameObject.put(Keys.IS_OVER_KEY, true);
                                 try {
                                     mGameObject.save();
                                 } catch (ParseException e1) {
                                     e1.printStackTrace();
                                 }
-                                ParseCloud.callFunctionInBackground(
-                                        "checkWinnerVs", params,
-                                        new FunctionCallback<ArrayList<ParseObject>>() {
-                                            @Override
-                                            public void done(ArrayList<ParseObject> a,
-                                                             ParseException e) {
-                                                if (a.size() > 1) {
-                                                    ArrayList<String> temp =
-                                                            new ArrayList<>();
-                                                    for (ParseObject p : a) {
-                                                        ParseUser user = (ParseUser) p.
-                                                                get(ParseKeys.PLAYER_KEY);
-                                                        temp.add(user.getObjectId());
+                                checkWinnerFirst();
 
-                                                    }
-                                                    final HashMap<String, Object> params2
-                                                            = new HashMap<String, Object>();
-
-                                                    params2.put("winnerIds", temp);
-                                                    params2.put("gameId", mGameObject.getObjectId());
-
-                                                    ParseCloud.callFunctionInBackground("editPlayerTies", params2, new FunctionCallback<Object>() {
-                                                        @Override
-                                                        public void done(Object o, ParseException e) {
-
-                                                        }
-                                                    });
-                                                    for (ParseObject p : a) {
-                                                        //TODO push notification
-                                                    }
-                                                } else {
-                                                    ParseObject winningGuess = a.get(0);
-                                                    ParseUser user = (ParseUser) winningGuess.get(ParseKeys.PLAYER_KEY);
-
-                                                    if (user.getObjectId().equals(mCurrentUser.getObjectId())) {
-                                                        final HashMap<String, String> params2
-                                                                = new HashMap<String, String>();
-                                                        params2.put("winnerId", user.getObjectId());
-                                                        params2.put("gameId", mGameObject.getObjectId());
-
-                                                        ParseCloud.callFunctionInBackground("editPlayerWins", params2, new FunctionCallback<Object>() {
-                                                            @Override
-                                                            public void done(Object o, ParseException e) {
-
-                                                            }
-                                                        });
-                                                        //TODO update ui with who won
-                                                    } else {
-                                                        final HashMap<String, String> params2
-                                                                = new HashMap<String, String>();
-                                                        params2.put("winnerId", user.getObjectId());
-                                                        params2.put("gameId", mGameObject.getObjectId());
-
-                                                        ParseCloud.callFunctionInBackground("editPlayerWins", params2, new FunctionCallback<Object>() {
-                                                            @Override
-                                                            public void done(Object o, ParseException e) {
-                                                                //TODO send push fucking notifacton
-                                                                //TODO update the shitty fucking ui
-
-                                                            }
-                                                        });
-                                                    }
-                                                }
-                                            }
-                                        });
                             } else {
                                 AlertDialog.Builder builder = new AlertDialog.Builder(
                                         GameActivity.this);
-                                builder.setMessage("Other users havent competed their games yet.\n " +
-                                        "You will be notified when the game is over")
+                                builder
+                                        .setMessage("Waiting for other players" +
+                                                "You will be notified when the game is over")
                                         .setCancelable(false)
-                                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                        .setPositiveButton("OK", new DialogInterface.
+                                                OnClickListener() {
                                             public void onClick(DialogInterface dialog, int id) {
                                                 //do things
                                             }
@@ -562,9 +752,92 @@ public class GameActivity extends ActionBarActivity {
 
     }
 
+    public void checkWinnerFirst() {
+        ParseCloud.callFunctionInBackground("checkWinnerVs", params,
+                new FunctionCallback<ArrayList<ParseObject>>() {
+                    @Override
+                    public void done(ArrayList<ParseObject> a,
+                                     ParseException e) {
+                        if (a.size() > 1) {
+                            ArrayList<String> temp =
+                                    new ArrayList<>();
+                            for (ParseObject p : a) {
+                                ParseUser user = (ParseUser) p.
+                                        get(Keys.PLAYER_KEY);
+                                temp.add(user.getObjectId());
+
+                            }
+
+
+                            params2.put("winnerIds", temp);
+                            params2.put("gameId", mGameObject.getObjectId());
+
+                            ParseCloud.callFunctionInBackground("editPlayerTies", params2,
+                                    new FunctionCallback<Object>() {
+                                        @Override
+                                        public void done(Object o, ParseException e) {
+
+                                        }
+                                    });
+                            for (ParseObject p : a) {
+                                //TODO push notification
+                            }
+                        } else {
+                            ParseObject winningGuess = a.get(0);
+                            ParseUser user = (ParseUser) winningGuess.get(Keys.PLAYER_KEY);
+
+                            if (user.getObjectId().equals(mCurrentUser.getObjectId())) {
+                                final HashMap<String, String> params2
+                                        = new HashMap<String, String>();
+                                params2.put("winnerId", user.getObjectId());
+                                params2.put("gameId", mGameObject.getObjectId());
+
+                                ParseCloud.callFunctionInBackground("editPlayerWins", params2,
+                                        new FunctionCallback<Object>() {
+                                            @Override
+                                            public void done(Object o, ParseException e) {
+
+                                            }
+                                        });
+                                //TODO update ui with who won
+                                AlertDialog.Builder builder = new AlertDialog.Builder(
+                                        GameActivity.this);
+                                builder.setMessage("You won!")
+                                        .setCancelable(false)
+                                        .setPositiveButton("OK",
+                                                new DialogInterface.OnClickListener() {
+                                                    public void onClick
+                                                            (DialogInterface dialog, int id) {
+                                                        //do things
+                                                    }
+                                                });
+                                builder.setTitle("Correct!");
+                                AlertDialog alert = builder.create();
+                                alert.show();
+                            } else {
+                                final HashMap<String, String> params2
+                                        = new HashMap<String, String>();
+                                params2.put("winnerId", user.getObjectId());
+                                params2.put("gameId", mGameObject.getObjectId());
+
+                                ParseCloud.callFunctionInBackground("editPlayerWins", params2,
+                                        new FunctionCallback<Object>() {
+                                            @Override
+                                            public void done(Object o, ParseException e) {
+                                                //TODO send push fucking notifacton
+                                                //TODO update the shitty fucking ui
+
+                                            }
+                                        });
+                            }
+                        }
+                    }
+                });
+    }
+
+
     public void endGame() {
-        //TODO do shit with game data
-        mGameObject.put(ParseKeys.IS_OVER_KEY, true);
+        mGameObject.put(Keys.IS_OVER_KEY, true);
         try {
             mGameObject.save();
         } catch (ParseException e) {
@@ -589,25 +862,6 @@ public class GameActivity extends ActionBarActivity {
     protected void onStop() {
         super.onStop();
         int indexInArray = 0;
-        String[] list = mGameObject.getList(ParseKeys.USERS_TURN_KEY)
-                .toArray(new String[0]);
-        for (int i = 0; i < list.length; i++) {
-            if (list[i].equals(ParseUser.getCurrentUser().getObjectId())) {
-                indexInArray = i;
-            }
-        }
-
-
-        Integer[] guessesRem = mGameObject.getList(ParseKeys.GUESSES_REMAINING)
-                .toArray(new Integer[0]);
-        guessesRem[indexInArray] = 10 - mCurrentNumCorrectSpot;
-
-        mGameObject.put(ParseKeys.GUESSES_REMAINING, Arrays.asList(guessesRem));
-        try {
-            mGameObject.save();
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
 
     }
 }

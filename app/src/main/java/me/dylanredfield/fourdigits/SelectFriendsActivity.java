@@ -45,19 +45,18 @@ public class SelectFriendsActivity extends ActionBarActivity {
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //TODO make gameobject using static method
         setContentView(R.layout.activity_select_friends);
         if (mContext == null) {
             mContext = this;
         }
 
-        mGameTypeString = getIntent().getStringExtra(ParseKeys.GAME_TYPE_EXTRA);
+        mGameTypeString = getIntent().getStringExtra(Keys.GAME_TYPE_EXTRA);
 
         mFont = Typeface.createFromAsset(getAssets(), "Arista_2.ttf");
 
         mCurrentUser = ParseUser.getCurrentUser();
 
-        mFriendsQuery = mCurrentUser.getRelation(ParseKeys.FRIENDS_KEY).getQuery();
+        mFriendsQuery = mCurrentUser.getRelation(Keys.FRIENDS_KEY).getQuery();
         mFriendsQuery.orderByAscending("username");
 
         try {
@@ -88,34 +87,33 @@ public class SelectFriendsActivity extends ActionBarActivity {
         // Handle presses on the action bar items
         switch (item.getItemId()) {
             case R.id.complete:
-                if (mGameTypeString.equals("WhoFirst")) {
+                if (mGameTypeString.equals(Keys.GAME_TYPE_WHO_FIRST_STRING)) {
                     if (mInvitedList.size() > 0 && mInvitedList.size() < 7) {
-                        //TODO make uppercase
-                        String[] answerArr = SelectGameActivity.makeAnswer();
+                        String[] answerArr = SelectGameActivity.MakeAnswer();
 
                         ParseObject inviteObject = new ParseObject("Invite");
-                        inviteObject.put(ParseKeys.FROM_USER_KEY, mCurrentUser);
+                        inviteObject.put(Keys.FROM_USER_KEY, mCurrentUser);
                         ParseRelation acceptedRelation =
-                                inviteObject.getRelation(ParseKeys.ACCEPTED_USERS_KEY);
+                                inviteObject.getRelation(Keys.ACCEPTED_USERS_KEY);
                         ParseRelation invtedRelation =
-                                inviteObject.getRelation(ParseKeys.INVITED_USERS_KEY);
+                                inviteObject.getRelation(Keys.INVITED_USERS_KEY);
 
                         ArrayList<String> userIDs = new ArrayList<String>();
 
                         for (ParseObject p : mInvitedList) {
                             invtedRelation.add(p);
                             userIDs.add(p.getObjectId());
-                            mPlayerStrings.add(p.getString(ParseKeys.USERNAME_KEY));
+                            mPlayerStrings.add(p.getString(Keys.USERNAME_KEY));
                         }
                         acceptedRelation.add(mCurrentUser);
                         userIDs.add(mCurrentUser.getObjectId());
                         mPlayerStrings.add(mCurrentUser.getUsername());
                         ParseObject gameTypeObject =
                                 ParseObject.createWithoutData
-                                        (ParseKeys.GAME_TYPE_KEY, ParseKeys.GAME_TYPE_WHO_FIRST);
-                        inviteObject.put(ParseKeys.GAME_TYPE_KEY, gameTypeObject);
+                                        (Keys.GAME_TYPE_KEY, Keys.GAME_TYPE_WHO_FIRST);
+                        inviteObject.put(Keys.GAME_TYPE_KEY, gameTypeObject);
 
-                        inviteObject.put(ParseKeys.TO_USERS_KEY, userIDs);
+                        inviteObject.put(Keys.TO_USERS_KEY, userIDs);
 
                         String str = "";
 
@@ -127,12 +125,12 @@ public class SelectFriendsActivity extends ActionBarActivity {
                             }
                         }
 
-                        inviteObject.put(ParseKeys.PLAYER_STRINGS_KEY, str);
-                        inviteObject.put(ParseKeys.CODE_KEY, Arrays.asList(answerArr));
-                        inviteObject.put(ParseKeys.NUM_SENT_KEY, userIDs.size());
-                        inviteObject.put(ParseKeys.NUM_ACCEPTED_KEY, 1);
+                        inviteObject.put(Keys.PLAYER_STRINGS_KEY, str);
+                        inviteObject.put(Keys.CODE_KEY, Arrays.asList(answerArr));
+                        inviteObject.put(Keys.NUM_SENT_KEY, userIDs.size());
+                        inviteObject.put(Keys.NUM_ACCEPTED_KEY, 1);
 
-                        inviteObject.put(ParseKeys.ACC_ARRAY_KEY,
+                        inviteObject.put(Keys.ACC_ARRAY_KEY,
                                 Arrays.asList(new String[]{mCurrentUser.getObjectId()}));
                         try {
                             inviteObject.save();
@@ -171,7 +169,88 @@ public class SelectFriendsActivity extends ActionBarActivity {
                         alert.show();
                     }
                 }
+                if (mGameTypeString.equals(Keys.GAME_TYPE_COLLAB_STRING)) {
+                    if (mInvitedList.size() > 1 && mInvitedList.size() < 7) {
+                        String[] answerArr = SelectGameActivity.MakeAnswer();
 
+                        ParseObject inviteObject = new ParseObject("Invite");
+                        inviteObject.put(Keys.FROM_USER_KEY, mCurrentUser);
+                        ParseRelation acceptedRelation =
+                                inviteObject.getRelation(Keys.ACCEPTED_USERS_KEY);
+                        ParseRelation invtedRelation =
+                                inviteObject.getRelation(Keys.INVITED_USERS_KEY);
+
+                        ArrayList<String> userIDs = new ArrayList<String>();
+
+                        for (ParseObject p : mInvitedList) {
+                            invtedRelation.add(p);
+                            userIDs.add(p.getObjectId());
+                            mPlayerStrings.add(p.getString(Keys.USERNAME_KEY));
+                        }
+                        acceptedRelation.add(mCurrentUser);
+                        userIDs.add(mCurrentUser.getObjectId());
+                        mPlayerStrings.add(mCurrentUser.getUsername());
+                        ParseObject gameTypeObject =
+                                ParseObject.createWithoutData
+                                        (Keys.GAME_TYPE_KEY, Keys.GAME_TYPE_COLLAB);
+                        inviteObject.put(Keys.GAME_TYPE_KEY, gameTypeObject);
+
+                        inviteObject.put(Keys.TO_USERS_KEY, userIDs);
+
+                        String str = "";
+
+                        for (int i = 0; i < mPlayerStrings.size(); i++) {
+                            if (i < mPlayerStrings.size() - 1) {
+                                str += mPlayerStrings.get(i) + ", ";
+                            } else {
+                                str += mPlayerStrings.get(i);
+                            }
+                        }
+
+                        inviteObject.put(Keys.PLAYER_STRINGS_KEY, str);
+                        inviteObject.put(Keys.CODE_KEY, Arrays.asList(answerArr));
+                        inviteObject.put(Keys.NUM_SENT_KEY, userIDs.size());
+                        inviteObject.put(Keys.NUM_ACCEPTED_KEY, 1);
+
+                        inviteObject.put(Keys.ACC_ARRAY_KEY,
+                                Arrays.asList(new String[]{mCurrentUser.getObjectId()}));
+                        try {
+                            inviteObject.save();
+                            finish();
+                        } catch (ParseException e) {
+                            e.printStackTrace();
+                        }
+
+                        //TODO make push notification
+
+                    } else if (mInvitedList.size() >= 7) {
+                        AlertDialog.Builder builder = new AlertDialog.Builder(
+                                SelectFriendsActivity.this);
+                        builder.setMessage("You can only invite up to 6 friends!")
+                                .setCancelable(false)
+                                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int id) {
+                                        //do things
+                                    }
+                                });
+                        builder.setTitle("Whoops!");
+                        AlertDialog alert = builder.create();
+                        alert.show();
+                    } else {
+                        AlertDialog.Builder builder = new AlertDialog.Builder(
+                                SelectFriendsActivity.this);
+                        builder.setMessage("Need to invite atleast two friends!")
+                                .setCancelable(false)
+                                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int id) {
+                                        //do things
+                                    }
+                                });
+                        builder.setTitle("Whoops!");
+                        AlertDialog alert = builder.create();
+                        alert.show();
+                    }
+                }
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -225,12 +304,18 @@ public class SelectFriendsActivity extends ActionBarActivity {
             action.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    //TODO makeInvit
-                    action.getBackground().setColorFilter(R.color.orange, PorterDuff.Mode.DARKEN);
-                    action.setText("V");
-                    Log.d("onClickListen", "button hit");
-
-                    mInvitedList.add(mFriendsArrayList.get(position));
+                    if (((Button) v).getText().toString().equalsIgnoreCase("challenge")) {
+                        ((Button) v).setText("Invited");
+                        v.getBackground().setColorFilter(getResources()
+                                .getColor(R.color.orange), PorterDuff.Mode.SRC_OVER);
+                        mInvitedList.add(mFriendsArrayList.get(position));
+                    } else {
+                        ((Button) v).setText("Challenge");
+                        v.getBackground().setColorFilter(getResources()
+                                .getColor(R.color.button_white), PorterDuff.Mode.SRC_OVER);
+                        int index = mInvitedList.indexOf(mFriendsArrayList.get(position));
+                        mInvitedList.remove(mFriendsArrayList.get(index));
+                    }
                 }
             });
 
