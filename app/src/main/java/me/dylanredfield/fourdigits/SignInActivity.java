@@ -13,9 +13,8 @@ import android.widget.TextView;
 import com.parse.ParseException;
 import com.parse.ParseUser;
 
-public class CreateAccountActivity extends ActionBarActivity {
+public class SignInActivity extends ActionBarActivity {
 
-    private EditText mFirstName;
     private EditText mUserName;
     private EditText mPassWord;
     private Button mRegister;
@@ -26,7 +25,7 @@ public class CreateAccountActivity extends ActionBarActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_create_account);
+        setContentView(R.layout.actvity_sign_in);
 
         makeObjects();
         setListeners();
@@ -37,7 +36,6 @@ public class CreateAccountActivity extends ActionBarActivity {
         mUser = ParseUser.getCurrentUser();
         mFont = Typeface.createFromAsset(getAssets(), "Arista_2.ttf");
 
-        mFirstName = (EditText) findViewById(R.id.first_name);
         mPassWord = (EditText) findViewById(R.id.password);
         mUserName = (EditText) findViewById(R.id.user_name);
         mRegister = (Button) findViewById(R.id.register);
@@ -61,44 +59,34 @@ public class CreateAccountActivity extends ActionBarActivity {
     }
 
     public void checkValidInputs() {
-        if (!mFirstName.getText().toString().equals("")) {
 
-            if (!mFirstName.getText().toString().trim().contains(" ")) {
 
-                if (!mUserName.getText().toString().equals("")) {
+        if (!mUserName.getText().toString().equals("")) {
 
-                    if (!mUserName.getText().toString().trim().contains(" ")) {
+            if (!mUserName.getText().toString().trim().contains(" ")) {
 
-                        if (!mPassWord.getText().toString().equals("")) {
-                            makeUser();
-                        } else {
-                            makeError("Enter a Password", "password cannot be blank");
-                        }
-                    } else {
-                        makeError("Invalid username", "username must be one word");
-                    }
+                if (!mPassWord.getText().toString().equals("")) {
+                    logIn();
                 } else {
-                    makeError("Enter a username", "username cannot be blank");
+                    makeError("Enter a Password", "password cannot be blank");
                 }
             } else {
-                makeError("Invalid Name", "Name must be one word");
+                makeError("Invalid username", "username must be one word");
             }
         } else {
-            makeError("Enter a name", "Name cannot be blank");
+            makeError("Enter a username", "username cannot be blank");
         }
     }
 
-    public void makeUser() {
-        mUser.setUsername(mUserName.getText().toString().trim().toLowerCase());
-        mUser.setPassword(mPassWord.getText().toString().trim());
-        mUser.put(Keys.FIRST_NAME_KEY, mFirstName.getText().toString().trim());
 
+    public void logIn() {
         try {
-            mUser.signUp();
+            mUser.logIn(mUserName.getText().toString().trim(),
+                    mPassWord.getText().toString().trim());
             finish();
         } catch (ParseException e) {
             AlertDialog.Builder builder = new AlertDialog.Builder(
-                    CreateAccountActivity.this);
+                    SignInActivity.this);
             builder.setMessage(e.getMessage())
                     .setCancelable(false)
                     .setPositiveButton("OK", new DialogInterface.OnClickListener() {
@@ -110,11 +98,12 @@ public class CreateAccountActivity extends ActionBarActivity {
             AlertDialog alert = builder.create();
             alert.show();
         }
+
     }
 
     public void makeError(String title, String message) {
         AlertDialog.Builder builder = new AlertDialog.Builder(
-                CreateAccountActivity.this);
+                SignInActivity.this);
         builder.setMessage(message)
                 .setCancelable(false)
                 .setPositiveButton("OK", new DialogInterface.OnClickListener() {

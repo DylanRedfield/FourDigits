@@ -34,6 +34,7 @@
     <string name="password_hint">Password</string>
     <string name="register">Register</string>
     <string name="already_have_account">Already have an Account?</string>
+    <string name="dont_have_account">Dont Have an Account?</string>
     <string name="cancel">cancel</string>
     <string name="vs_computer">Vs. Computer</string>
     <string name="invited">invited</string>

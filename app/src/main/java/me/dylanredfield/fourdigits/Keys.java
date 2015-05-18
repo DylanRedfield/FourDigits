@@ -50,7 +50,7 @@ public class Keys {
 
     public static String GAME_TYPE_WHO_FIRST_STRING = "WhoFirst";
     public static String GAME_TYPE_SINGLE_STRING = "Single";
-    public static String GAME_TYPE_COLLAB_STRING = "COLLABORATE";
+    public static String GAME_TYPE_COLLAB_STRING = "Collaborate";
 
 
     public static String ACC_ARRAY_KEY = "accArray";

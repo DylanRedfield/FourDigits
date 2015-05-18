@@ -322,18 +322,23 @@ public class GameActivity extends ActionBarActivity {
             v.setClickable(false);
         }
     }
+
     public void enableAll() {
-        for(Button b : mInputList) {
+        for (Button b : mInputList) {
             b.setClickable(true);
         }
         mInputList.get(9).setClickable(false);
+        isChecked = true;
     }
+
     public void disableAll() {
-        for(Button b : mInputList) {
+        for (Button b : mInputList) {
             b.setClickable(false);
         }
         mInputList.get(9).setClickable(true);
     }
+
+    //TODO check, enter, goback, input
 
     public void deleteInput() {
         mCurrentButtonInt--;
@@ -360,6 +365,7 @@ public class GameActivity extends ActionBarActivity {
         }
 
         if (mGameType.equals(Keys.GAME_TYPE_COLLAB_STRING)) {
+            Log.d("gameType", mGameType);
             if (mPreviousButtonInt % 4 == 3 && !isChecked) {
                 mInputList.get(9).setClickable(false);
                 mGameObject.getRelation(Keys.WHOSE_TURN_KEY).remove(mCurrentUser);
@@ -389,7 +395,7 @@ public class GameActivity extends ActionBarActivity {
                 } catch (ParseException e) {
                     e.printStackTrace();
                 }
-                collabCloudCode(guess);
+                collabCloudCode();
             }
 
 
@@ -470,7 +476,9 @@ public class GameActivity extends ActionBarActivity {
         if (tempArray[3].equals(mAnswerArray[3])) {
             mNumCorrectSpot++;
         }
-        mTextSpots.get(mCurrentNumCorrectSpot).setText("" + mNumCorrectSpot);
+        if (!mGameType.equals(Keys.GAME_TYPE_COLLAB_STRING)) {
+            mTextSpots.get(mCurrentNumCorrectSpot).setText("" + mNumCorrectSpot);
+        }
 
         for (int i = 0; i < tempArray.length; i++) {
             if (tempArray[0].equals(mAnswerArray[i])) {
@@ -487,7 +495,9 @@ public class GameActivity extends ActionBarActivity {
             }
         }
 
-        mTextNums.get(mCurrentNumCorrectSpot).setText("" + mNumCorrect);
+        if (!mGameType.equals(Keys.GAME_TYPE_COLLAB_STRING)) {
+            mTextNums.get(mCurrentNumCorrectSpot).setText("" + mNumCorrect);
+        }
         return tempArray;
     }
 
@@ -502,7 +512,7 @@ public class GameActivity extends ActionBarActivity {
         return tempArray;
     }
 
-    public void collabCloudCode(ParseObject guess) {
+    public void collabCloudCode() {
         final HashMap<String, Object> collabParams = new HashMap<>();
         collabParams.put("gameId", mGameObject.getObjectId());
         collabParams.put("roundNum", mCurrentNumCorrectSpot + 1);
@@ -522,6 +532,45 @@ public class GameActivity extends ActionBarActivity {
                                         @Override
                                         public void done(ArrayList o, ParseException e) {
                                             if ((Boolean) o.get(0)) {
+                                                if (mGameObject.getList("winners").size() > 0) {
+                                                    AlertDialog.Builder builder =
+                                                            new AlertDialog.Builder(
+                                                                    GameActivity.this);
+                                                    builder.setMessage("You Won")
+                                                            .setCancelable(false)
+                                                            .setPositiveButton("OK",
+                                                                    new DialogInterface.
+                                                                            OnClickListener() {
+                                                                        public void onClick
+                                                                                (DialogInterface
+                                                                                         dialog,
+                                                                                 int id) {
+                                                                            finish();
+                                                                        }
+                                                                    });
+                                                    builder.setTitle("Nice!");
+                                                    AlertDialog alert = builder.create();
+                                                    alert.show();
+                                                } else {
+                                                    AlertDialog.Builder builder =
+                                                            new AlertDialog.Builder(
+                                                                    GameActivity.this);
+                                                    builder.setMessage("You lost")
+                                                            .setCancelable(false)
+                                                            .setPositiveButton("OK",
+                                                                    new DialogInterface.
+                                                                            OnClickListener() {
+                                                                        public void onClick
+                                                                                (DialogInterface
+                                                                                         dialog,
+                                                                                 int id) {
+                                                                            finish();
+                                                                        }
+                                                                    });
+                                                    builder.setTitle("Game over");
+                                                    AlertDialog alert = builder.create();
+                                                    alert.show();
+                                                }
                                                 List guessRem = mGameObject
                                                         .getList(Keys.GUESSES_REMAINING);
                                                 guessRem.set(0, 10 - mCurrentNumCorrectSpot);
@@ -537,7 +586,8 @@ public class GameActivity extends ActionBarActivity {
                                             } else {
                                                 List guessRem = mGameObject
                                                         .getList(Keys.GUESSES_REMAINING);
-                                                guessRem.set(0, 10 - mCurrentNumCorrectSpot);
+                                                guessRem.set(0, 9 - mCurrentNumCorrectSpot);
+                                                Log.d("GuessEnter", "log");
                                                 mGameObject.put(Keys.GUESSES_REMAINING,
                                                         guessRem);
                                                 try {
@@ -548,6 +598,7 @@ public class GameActivity extends ActionBarActivity {
 
                                                 String player = (String) o.get(1);
                                                 collabAlertDialog(player);
+                                                updateUiCollab();
                                                 //TODO update ui
                                                 //TODO allow user to enter new guess
 
@@ -563,7 +614,7 @@ public class GameActivity extends ActionBarActivity {
                                             new DialogInterface.OnClickListener() {
                                                 public void onClick
                                                         (DialogInterface dialog, int id) {
-                                                    endGame();
+                                                    finish();
                                                 }
                                             });
                             builder.setTitle("Whoops!");
@@ -582,20 +633,16 @@ public class GameActivity extends ActionBarActivity {
                 .setCancelable(false)
                 .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
-                        endGame();
                     }
                 });
         builder.setTitle("Guess chosen");
         AlertDialog alert = builder.create();
         alert.show();
     }
+
     public void updateUiCollab() {
-        //TODO need to get from collabobject
-        List tempGuessList = mGameObject.getList(Keys.GAME_KEY);
-        mButtonList.get(mCurrentButtonInt - 4).setText((String)tempGuessList.get(0));
-        mButtonList.get(mCurrentButtonInt - 3).setText((String)tempGuessList.get(1));
-        mButtonList.get(mCurrentButtonInt - 2).setText((String)tempGuessList.get(2));
-        mButtonList.get(mCurrentButtonInt - 1).setText((String)tempGuessList.get(3));
+        queryParse();
+        enableAll();
     }
 
     public void ifWinGame() {

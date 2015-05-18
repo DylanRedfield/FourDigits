@@ -72,6 +72,8 @@ public class MainActivity extends ActionBarActivity {
         setListeners();
         firstQuery = true;
         queryParse();
+
+
     }
 
     public void makeObjects() {
@@ -217,6 +219,8 @@ public class MainActivity extends ActionBarActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
+        //TODO hide games on sighn out
+        //TODO refresh menu icons
         // Inflate the menu items for use in the action bar
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.menu_main, menu);
@@ -252,6 +256,10 @@ public class MainActivity extends ActionBarActivity {
                 return true;
             case R.id.log_out:
                 logOut();
+                return true;
+            case R.id.sign_in:
+                Intent signInIntent = new Intent(getApplicationContext(), SignInActivity.class);
+                startActivity(signInIntent);
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -457,6 +465,9 @@ public class MainActivity extends ActionBarActivity {
                 for (int i = 0; i < list.length; i++) {
                     if (list[i].equals(mCurrentUser.getObjectId())) {
                         indexInArray = i;
+                    }
+                    if (type.equals("collaborative")) {
+                        indexInArray = 0;
                     }
                 }
                 action.setText("Play");

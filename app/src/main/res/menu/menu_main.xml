@@ -12,7 +12,7 @@
     <item
         android:id="@+id/add_friend"
         android:title="@string/add_friend" />
-        <item
+    <item
         android:id="@+id/log_out"
         android:title="@string/log_out" />
 </menu>

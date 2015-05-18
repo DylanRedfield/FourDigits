@@ -23,13 +23,19 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.parse.ParseException;
+import com.parse.ParseInstallation;
 import com.parse.ParseObject;
+import com.parse.ParsePush;
 import com.parse.ParseQuery;
 import com.parse.ParseRelation;
 import com.parse.ParseUser;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 
 public class SelectFriendsActivity extends ActionBarActivity {
     private Typeface mFont;
@@ -139,7 +145,24 @@ public class SelectFriendsActivity extends ActionBarActivity {
                             e.printStackTrace();
                         }
 
-                        //TODO make push notification
+                        ParseQuery pushQuery = ParseInstallation.getQuery();
+                        pushQuery.whereContainedIn("user", mInvitedList);
+                        String input = mCurrentUser.getUsername() + " has invited you to play " +
+                                "a game";
+
+                        JSONObject data = null;
+                        try {
+                            data = new JSONObject("{\"alert\": \"input\"" +
+                                    ",\"badge\": \"Increment\",\"pushType\": \"Invite\"}");
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+
+                        ParsePush push = new ParsePush();
+                        push.setData(data);
+                        push.setQuery(pushQuery);
+                        push.sendInBackground();
+
 
                     } else if (mInvitedList.size() >= 7) {
                         AlertDialog.Builder builder = new AlertDialog.Builder(
@@ -221,8 +244,23 @@ public class SelectFriendsActivity extends ActionBarActivity {
                             e.printStackTrace();
                         }
 
-                        //TODO make push notification
+                        ParseQuery pushQuery = ParseQuery.getQuery("Installation");
+                        pushQuery.whereContainedIn("user", mInvitedList);
+                        String input = mCurrentUser.getUsername() + " has invited you to play " +
+                                "a game";
 
+                        JSONObject data = null;
+                        try {
+                            data = new JSONObject("{\"alert\": \"input\"" +
+                                    ",\"badge\": \"Increment\",\"pushType\": \"Invite\"}");
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+
+                        ParsePush push = new ParsePush();
+                        push.setData(data);
+                        push.setQuery(pushQuery);
+                        push.sendInBackground();
                     } else if (mInvitedList.size() >= 7) {
                         AlertDialog.Builder builder = new AlertDialog.Builder(
                                 SelectFriendsActivity.this);
