@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:background="@color/light_purple"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_marginLeft="25dp"
+        android:layout_marginTop="25dp"
+        android:layout_marginRight="25dp"
+        android:padding="12dp"
+        android:layout_gravity="center"
+        android:gravity="center_horizontal"
+        android:layout_height="wrap_content"
+        android:background="@drawable/select_game_rect">
+
+        <TextView
+            android:id="@+id/result"
+            android:textColor="@color/orange"
+            android:textSize="35sp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            android:id="@+id/game_type"
+            android:textColor="@color/grey"
+            android:textSize="20sp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            android:id="@+id/players"
+            android:textColor="@color/white"
+            android:textSize="25sp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:padding="12dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:id="@+id/answer_1"
+                android:background="@drawable/invited_button"
+                android:textColor="@color/dark_purple"
+                android:textSize="20sp"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp"
+                android:layout_weight="1"
+                android:layout_width="0dp"
+                android:gravity="center"
+                android:layout_marginRight="12dp"
+                android:layout_height="wrap_content" />
+
+            <TextView
+                android:id="@+id/answer_2"
+                android:background="@drawable/invited_button"
+                android:textColor="@color/dark_purple"
+                android:textSize="20sp"
+                android:layout_width="0dp"
+                android:gravity="center"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp"
+                android:layout_weight="1"
+                android:layout_marginRight="12dp"
+                android:layout_height="wrap_content" />
+
+            <TextView
+                android:id="@+id/answer_3"
+                android:background="@drawable/invited_button"
+                android:gravity="center"
+                android:textColor="@color/dark_purple"
+                android:layout_marginRight="12dp"
+                android:textSize="20sp"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content" />
+
+            <TextView
+                android:id="@+id/answer_4"
+                android:background="@drawable/invited_button"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp"
+                android:textColor="@color/dark_purple"
+                android:textSize="20sp"
+                android:gravity="center"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/view_board"
+        android:textSize="25sp"
+        android:textColor="@color/white"
+        android:background="@drawable/select_game_rect"
+        android:textAllCaps="false"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="25dp"
+        android:layout_marginRight="25dp"/>
+
+</LinearLayout>

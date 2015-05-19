@@ -54,6 +54,9 @@
         <activity
             android:name=".SignInActivity"
             android:label="@string/game_type"></activity>
+        <activity
+            android:name=".ResultsActivity"
+            android:label="@string/game_type"></activity>
 
         <service android:name="com.parse.PushService" />
 

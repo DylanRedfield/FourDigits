@@ -514,64 +514,20 @@ public class MainActivity extends ActionBarActivity {
                 }
 
 
-                /*RelativeLayout.LayoutParams params =
-                        (RelativeLayout.LayoutParams) info.getLayoutParams();
-                params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
-
-                info.setLayoutParams(params); //causes layout update */
             }
 
             action.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     if (((Button) v).getText().toString().equals("accept")) {
-
-
                         callCloudCode(position);
-
-                    } else if (((Button) v).getText().toString().equals("accept")) {
-                        //results
-                    } else {
-                        Intent i = new Intent(getApplicationContext(), GameActivity.class);
-                        i.putExtra(Keys.OBJECT_ID_STRING,
-                                mFullList.get(position).getObjectId());
+                    } else if (((Button) v).getText().toString().equals("Results")) {
+                        Intent i = new Intent(getApplicationContext(), ResultsActivity.class);
+                        i.putExtra(Keys.OBJECT_ID_STRING, mFullList.get(position).getObjectId());
                         startActivity(i);
-                    }
-                }
-            });
-            name.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if (((Button) v).getText().toString().equals("accept")) {
-                        HashMap<String, Object> params = new HashMap<String, Object>();
-
-                        params.put("inviteId", mFullList.get(position).getObjectId());
-                        params.put("gameType", mFullList.get(position)
-                                .get(Keys.GAME_TYPE_KEY));
-
-                        ParseCloud.callFunctionInBackground
-                                ("canWeStart", params, new FunctionCallback<Object[]>() {
-
-                                    @Override
-                                    public void done(Object[] objects, ParseException e) {
-                                        boolean canStart = (Boolean) objects[0];
-
-                                        if (canStart) {
-                                            //queryParse();
-                                            mSelectedObject = (ParseObject) objects[1];
-                                            Intent i = new Intent(getApplicationContext(),
-                                                    GameActivity.class);
-                                            i.putExtra(Keys.OBJECT_ID_STRING,
-                                                    mSelectedObject.getObjectId());
-                                            startActivity(i);
-                                        }
-                                    }
-                                });
                     } else {
-
                         Intent i = new Intent(getApplicationContext(), GameActivity.class);
-                        i.putExtra(Keys.OBJECT_ID_STRING, mFullList.get(position)
-                                .getObjectId());
+                        i.putExtra(Keys.OBJECT_ID_STRING, mFullList.get(position).getObjectId());
                         startActivity(i);
                     }
                 }
