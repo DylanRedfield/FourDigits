@@ -152,7 +152,7 @@ public class SelectFriendsActivity extends ActionBarActivity {
 
                         JSONObject data = null;
                         try {
-                            data = new JSONObject("{\"alert\": \"input\"" +
+                            data = new JSONObject("{\"alert\": \"" + input + "\"" +
                                     ",\"badge\": \"Increment\",\"pushType\": \"Invite\"}");
                         } catch (JSONException e) {
                             e.printStackTrace();
@@ -244,14 +244,14 @@ public class SelectFriendsActivity extends ActionBarActivity {
                             e.printStackTrace();
                         }
 
-                        ParseQuery pushQuery = ParseQuery.getQuery("Installation");
+                        ParseQuery pushQuery = ParseInstallation.getQuery();
                         pushQuery.whereContainedIn("user", mInvitedList);
                         String input = mCurrentUser.getUsername() + " has invited you to play " +
                                 "a game";
 
                         JSONObject data = null;
                         try {
-                            data = new JSONObject("{\"alert\": \"input\"" +
+                            data = new JSONObject("{\"alert\": \"" + input + "\"" +
                                     ",\"badge\": \"Increment\",\"pushType\": \"Invite\"}");
                         } catch (JSONException e) {
                             e.printStackTrace();

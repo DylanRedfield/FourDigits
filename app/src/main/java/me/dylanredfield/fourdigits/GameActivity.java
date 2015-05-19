@@ -14,10 +14,15 @@ import android.widget.TextView;
 import com.parse.FunctionCallback;
 import com.parse.ParseCloud;
 import com.parse.ParseException;
+import com.parse.ParseInstallation;
 import com.parse.ParseObject;
+import com.parse.ParsePush;
 import com.parse.ParseQuery;
 import com.parse.ParseRelation;
 import com.parse.ParseUser;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -383,7 +388,25 @@ public class GameActivity extends ActionBarActivity {
                 } catch (ParseException e) {
                     e.printStackTrace();
                 }
-                //TODO push notification idk for what
+                ParseQuery pushQuery = ParseInstallation.getQuery();
+                ParseQuery userQuery = mGameObject.getRelation(Keys.WHOSE_TURN_KEY).getQuery();
+                pushQuery.whereMatchesQuery(Keys.USER_KEY, userQuery);
+                String input = mCurrentUser.getUsername() + " just sumbitted a guess in your" +
+                        " group game. Now it is your turn!";
+
+                JSONObject data = null;
+                try {
+                    data = new JSONObject("{\"alert\": \"" + input + "\"" +
+                            ",\"badge\": \"Increment\",\"pushType\": \"yourTurn\"" +
+                            ",\"gameId\": \"" + mGameObject.getObjectId() + "\"}");
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+                ParsePush push = new ParsePush();
+                push.setData(data);
+                push.setQuery(pushQuery);
+                push.sendInBackground();
 
                 ParseObject guess = new ParseObject(Keys.COLLAB_GUESS);
                 guess.put(Keys.PLAYER_KEY, mCurrentUser);
@@ -582,7 +605,6 @@ public class GameActivity extends ActionBarActivity {
                                                 } catch (ParseException e1) {
                                                     e1.printStackTrace();
                                                 }
-                                                //TODO reloadui
                                             } else {
                                                 List guessRem = mGameObject
                                                         .getList(Keys.GUESSES_REMAINING);
@@ -599,8 +621,6 @@ public class GameActivity extends ActionBarActivity {
                                                 String player = (String) o.get(1);
                                                 collabAlertDialog(player);
                                                 updateUiCollab();
-                                                //TODO update ui
-                                                //TODO allow user to enter new guess
 
                                             }
                                         }
@@ -782,7 +802,7 @@ public class GameActivity extends ActionBarActivity {
                                         .setPositiveButton("OK", new DialogInterface.
                                                 OnClickListener() {
                                             public void onClick(DialogInterface dialog, int id) {
-                                                //do things
+                                                finish();
                                             }
                                         });
                                 builder.setTitle("Correct!");
@@ -827,11 +847,10 @@ public class GameActivity extends ActionBarActivity {
                                         }
                                     });
                             for (ParseObject p : a) {
-                                //TODO push notification
                             }
                         } else {
                             ParseObject winningGuess = a.get(0);
-                            ParseUser user = (ParseUser) winningGuess.get(Keys.PLAYER_KEY);
+                            final ParseUser user = (ParseUser) winningGuess.get(Keys.PLAYER_KEY);
 
                             if (user.getObjectId().equals(mCurrentUser.getObjectId())) {
                                 final HashMap<String, String> params2
@@ -855,7 +874,7 @@ public class GameActivity extends ActionBarActivity {
                                                 new DialogInterface.OnClickListener() {
                                                     public void onClick
                                                             (DialogInterface dialog, int id) {
-                                                        //do things
+                                                        finish();
                                                     }
                                                 });
                                 builder.setTitle("Correct!");
@@ -871,8 +890,8 @@ public class GameActivity extends ActionBarActivity {
                                         new FunctionCallback<Object>() {
                                             @Override
                                             public void done(Object o, ParseException e) {
-                                                //TODO send push fucking notifacton
-                                                //TODO update the shitty fucking ui
+                                                //editPlayerWinsPush(user);
+
 
                                             }
                                         });
@@ -882,6 +901,27 @@ public class GameActivity extends ActionBarActivity {
                 });
     }
 
+    public void editPlayerWinsPush(ParseUser user) {
+        ParseQuery pushQuery = ParseInstallation.getQuery();
+        pushQuery.whereEqualTo(Keys.USER_KEY, user);
+        String input = "You guessed the number with the least amount of guesses in your game " +
+                "with " + mGameObject.getString(Keys.PLAYER_STRINGS_KEY);
+
+        JSONObject data = null;
+        try {
+            data = new JSONObject("{\"alert\": \"" + input + "\"" +
+                    ",\"badge\": \"Increment\",\"pushType\": \"gameOver\"" +
+                    ",\"gameId\": \"" + mGameObject.getObjectId() + "\"}");
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        ParsePush push = new ParsePush();
+        push.setData(data);
+        push.setQuery(pushQuery);
+        push.sendInBackground();
+    }
 
     public void endGame() {
         mGameObject.put(Keys.IS_OVER_KEY, true);

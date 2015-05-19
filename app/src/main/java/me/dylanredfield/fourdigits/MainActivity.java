@@ -220,7 +220,7 @@ public class MainActivity extends ActionBarActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         //TODO hide games on sighn out
-        //TODO refresh menu icons
+        //TODO refresh menu icons/
         // Inflate the menu items for use in the action bar
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.menu_main, menu);
@@ -458,6 +458,7 @@ public class MainActivity extends ActionBarActivity {
                         PorterDuff.Mode.DARKEN);
 
                 action.setVisibility(View.VISIBLE);
+                info.setVisibility(View.GONE);
             } else if (position < mInvites.size() + mYourTurnList.size()) {
                 String[] list = mFullList.get(position).getList(Keys.USERS_TURN_KEY)
                         .toArray(new String[0]);
@@ -473,6 +474,7 @@ public class MainActivity extends ActionBarActivity {
                 action.setText("Play");
                 info.setText("" + mFullList.get(position).getList("guessesRemaining")
                         .toArray(new Integer[0])[indexInArray] + " left");
+                info.setVisibility(View.VISIBLE);
 
                 action.setVisibility(View.VISIBLE);
                 action.getBackground().setColorFilter(getResources()
@@ -484,24 +486,31 @@ public class MainActivity extends ActionBarActivity {
                         PorterDuff.Mode.SRC_OVER);
 
                 action.setVisibility(View.VISIBLE);
+
+                info.setVisibility(View.GONE);
             } else if (position < mInvites.size() + mYourTurnList.size() + mTheirTurnList.size()
                     + mGameOverList.size()) {
 
-                action.setVisibility(View.GONE);
+                action.setVisibility(View.VISIBLE);
+                action.setText("Results");
+                action.getBackground().setColorFilter(getResources()
+                        .getColor(R.color.button_white), PorterDuff.Mode.LIGHTEN);
+
+                info.setVisibility(View.VISIBLE);
                 if (mFullList.get(position).getList(Keys.WINNERS_KEY) != null) {
                     String[] winnerList = mFullList.get(position).getList(Keys.WINNERS_KEY)
                             .toArray(new String[0]);
                     for (int i = 0; i < winnerList.length; i++) {
                         if (mCurrentUser.getObjectId().equals(winnerList[i])) {
-                            info.setText("You won");
+                            info.setText("Won");
                         }
                     }
-                    if (!info.getText().toString().equals("You won")) {
-                        info.setText("You lost");
+                    if (!info.getText().toString().equals("Won")) {
+                        info.setText("Lost");
                     }
                 } else {
 
-                    info.setText("You lost");
+                    info.setText("Lost");
                 }
 
 
@@ -520,6 +529,8 @@ public class MainActivity extends ActionBarActivity {
 
                         callCloudCode(position);
 
+                    } else if (((Button) v).getText().toString().equals("accept")) {
+                        //results
                     } else {
                         Intent i = new Intent(getApplicationContext(), GameActivity.class);
                         i.putExtra(Keys.OBJECT_ID_STRING,
