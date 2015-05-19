@@ -100,6 +100,7 @@
 
     <Button
         android:id="@+id/view_board"
+        android:layout_marginTop="12dp"
         android:textSize="25sp"
         android:textColor="@color/white"
         android:background="@drawable/select_game_rect"
