@@ -78,14 +78,18 @@ public class ResultsActivity extends ActionBarActivity {
                 mResult.setText("You Lost");
             }
         } else {
-            String[] winnerList = mGameObject.getList(Keys.WINNERS_KEY)
-                    .toArray(new String[0]);
-            for (int i = 0; i < winnerList.length; i++) {
-                if (mCurrentUser.getObjectId().equals(winnerList[i])) {
-                    mResult.setText("You Won");
+            if (mGameObject.getList(Keys.WINNERS_KEY) != null) {
+                String[] winnerList = mGameObject.getList(Keys.WINNERS_KEY)
+                        .toArray(new String[0]);
+                for (int i = 0; i < winnerList.length; i++) {
+                    if (mCurrentUser.getObjectId().equals(winnerList[i])) {
+                        mResult.setText("You Won");
+                    }
                 }
-            }
-            if (!mResult.getText().toString().equals("You Won")) {
+                if (!mResult.getText().toString().equals("You Won")) {
+                    mResult.setText("You Lost");
+                }
+            } else {
                 mResult.setText("You Lost");
             }
         }

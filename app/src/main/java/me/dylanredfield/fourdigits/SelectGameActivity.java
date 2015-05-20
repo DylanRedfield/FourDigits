@@ -58,7 +58,7 @@ public class SelectGameActivity extends ActionBarActivity {
         mComputer.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ParseObject gameObject = MakeParseObject("Single");
+                ParseObject gameObject = makeParseObject("Single");
 
                 Intent i = new Intent(getApplicationContext(), GameActivity.class);
                 i.putExtra(Keys.OBJECT_ID_STRING, gameObject.getObjectId());
@@ -101,7 +101,7 @@ public class SelectGameActivity extends ActionBarActivity {
                 } else {
                     AlertDialog.Builder builder = new AlertDialog.Builder(
                             SelectGameActivity.this);
-                    builder.setMessage("You need atleast two friend;" )
+                    builder.setMessage("You need atleast two friend;")
                             .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialog, int id) {
                                 }
@@ -114,7 +114,7 @@ public class SelectGameActivity extends ActionBarActivity {
         });
     }
 
-    public static ParseObject MakeParseObject(String type) {
+    public static ParseObject makeParseObject(String type) {
         ParseObject gameObject = new ParseObject("Game");
         String newType = "";
 
@@ -126,7 +126,7 @@ public class SelectGameActivity extends ActionBarActivity {
 
         gameObject.put("GameType",
                 ParseObject.createWithoutData("GameType", newType));
-        gameObject.addAll(Keys.CODE_KEY, Arrays.asList(MakeAnswer()));
+        gameObject.addAll(Keys.CODE_KEY, Arrays.asList(makeAnswer()));
         gameObject.addAll("guessesRemaining", Arrays.asList(new Integer[]{10}));
         gameObject.put("isOver", false);
         gameObject.put("numPlayers", 1);
@@ -143,7 +143,7 @@ public class SelectGameActivity extends ActionBarActivity {
         return gameObject;
     }
 
-    public static String[] MakeAnswer() {
+    public static String[] makeAnswer() {
         int one, two, three, four;
         String[] stringArray = new String[4];
         Random generator = new Random();

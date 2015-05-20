@@ -44,4 +44,5 @@
     <string name="log_out">Log Out</string>
     <string name="sign_in">Sign In</string>
     <string name="complete">Finish</string>
+    <string name="game_info">Game Info</string>
 </resources>

@@ -1,16 +1,28 @@
 package me.dylanredfield.fourdigits;
 
+import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.PorterDuff;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.BaseAdapter;
 import android.widget.Button;
+import android.widget.ListView;
 import android.widget.TextView;
 
+import com.parse.FindCallback;
 import com.parse.FunctionCallback;
 import com.parse.ParseCloud;
 import com.parse.ParseException;
@@ -52,6 +64,7 @@ public class GameActivity extends ActionBarActivity {
     private ParseObject mVsGame;
     private HashMap<String, Object> params;
     private HashMap<String, Object> params2;
+    private Activity mActivityContext;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,12 +80,23 @@ public class GameActivity extends ActionBarActivity {
         localTextViews();
 
         queryParse();
+
+        if (mGameObject.getBoolean(Keys.IS_OVER_KEY)) {
+            for (Button b : mInputList) {
+                b.setClickable(false);
+            }
+        }
     }
 
     public void getStuff() {
 
 
         mCurrentUser = ParseUser.getCurrentUser();
+
+        mActivityContext = this;
+        while (mActivityContext.getParent() != null) {
+            mActivityContext = mActivityContext.getParent();
+        }
 
         try {
             mGameObject = ParseObject.createWithoutData(Keys.GAME_KEY, getIntent()
@@ -343,8 +367,6 @@ public class GameActivity extends ActionBarActivity {
         mInputList.get(9).setClickable(true);
     }
 
-    //TODO check, enter, goback, input
-
     public void deleteInput() {
         mCurrentButtonInt--;
         mPreviousButtonInt--;
@@ -355,6 +377,7 @@ public class GameActivity extends ActionBarActivity {
                 getResources().getColor(R.color.dark_purple), PorterDuff.Mode.DARKEN);
         if (mCurrentButtonInt % 4 == 0) {
             mInputList.get(9).setClickable(false);
+            isChecked = true;
         }
 
     }
@@ -437,22 +460,9 @@ public class GameActivity extends ActionBarActivity {
                 } else if (mCurrentNumCorrectSpot >= 9 &&
                         mGameType.equals(Keys.GAME_TYPE_SINGLE_STRING)) {
                     ParseUser.getCurrentUser().increment(Keys.TOTAL_LOSSES_KEY);
-                    String code = "";
-                    for (String s : mAnswerArray) {
-                        code += s;
-                    }
-                    AlertDialog.Builder builder = new AlertDialog.Builder(
-                            GameActivity.this);
-                    builder.setMessage("The Correct code was " + code)
-                            .setCancelable(false)
-                            .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int id) {
-                                    endGame();
-                                }
-                            });
-                    builder.setTitle("Game Over");
-                    AlertDialog alert = builder.create();
-                    alert.show();
+
+                    endGame("loss");
+
                 }
 
                 ParseObject guess = new ParseObject("Guess");
@@ -556,43 +566,11 @@ public class GameActivity extends ActionBarActivity {
                                         public void done(ArrayList o, ParseException e) {
                                             if ((Boolean) o.get(0)) {
                                                 if (mGameObject.getList("winners").size() > 0) {
-                                                    AlertDialog.Builder builder =
-                                                            new AlertDialog.Builder(
-                                                                    GameActivity.this);
-                                                    builder.setMessage("You Won")
-                                                            .setCancelable(false)
-                                                            .setPositiveButton("OK",
-                                                                    new DialogInterface.
-                                                                            OnClickListener() {
-                                                                        public void onClick
-                                                                                (DialogInterface
-                                                                                         dialog,
-                                                                                 int id) {
-                                                                            finish();
-                                                                        }
-                                                                    });
-                                                    builder.setTitle("Nice!");
-                                                    AlertDialog alert = builder.create();
-                                                    alert.show();
+                                                    viewResults();
+                                                    finish();
                                                 } else {
-                                                    AlertDialog.Builder builder =
-                                                            new AlertDialog.Builder(
-                                                                    GameActivity.this);
-                                                    builder.setMessage("You lost")
-                                                            .setCancelable(false)
-                                                            .setPositiveButton("OK",
-                                                                    new DialogInterface.
-                                                                            OnClickListener() {
-                                                                        public void onClick
-                                                                                (DialogInterface
-                                                                                         dialog,
-                                                                                 int id) {
-                                                                            finish();
-                                                                        }
-                                                                    });
-                                                    builder.setTitle("Game over");
-                                                    AlertDialog alert = builder.create();
-                                                    alert.show();
+                                                    viewResults();
+                                                    finish();
                                                 }
                                                 List guessRem = mGameObject
                                                         .getList(Keys.GUESSES_REMAINING);
@@ -644,6 +622,12 @@ public class GameActivity extends ActionBarActivity {
 
                     }
                 });
+    }
+
+    public void viewResults() {
+        Intent i = new Intent(getApplicationContext(), ResultsActivity.class);
+        i.putExtra(Keys.OBJECT_ID_STRING, mGameObject.getObjectId());
+        startActivity(i);
     }
 
     public void collabAlertDialog(String x) {
@@ -709,18 +693,7 @@ public class GameActivity extends ActionBarActivity {
             } catch (ParseException e) {
                 e.printStackTrace();
             }
-            AlertDialog.Builder builder = new AlertDialog.Builder(
-                    GameActivity.this);
-            builder.setMessage("You have won")
-                    .setCancelable(false)
-                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int id) {
-                            endGame();
-                        }
-                    });
-            builder.setTitle("Winner!");
-            AlertDialog alert = builder.create();
-            alert.show();
+            endGame("win");
         }
     }
 
@@ -865,7 +838,6 @@ public class GameActivity extends ActionBarActivity {
 
                                             }
                                         });
-                                //TODO update ui with who won
                                 AlertDialog.Builder builder = new AlertDialog.Builder(
                                         GameActivity.this);
                                 builder.setMessage("You won!")
@@ -874,6 +846,7 @@ public class GameActivity extends ActionBarActivity {
                                                 new DialogInterface.OnClickListener() {
                                                     public void onClick
                                                             (DialogInterface dialog, int id) {
+                                                        viewResults();
                                                         finish();
                                                     }
                                                 });
@@ -923,14 +896,55 @@ public class GameActivity extends ActionBarActivity {
         push.sendInBackground();
     }
 
-    public void endGame() {
+    public void endGame(String result) {
         mGameObject.put(Keys.IS_OVER_KEY, true);
         try {
             mGameObject.save();
         } catch (ParseException e) {
             e.printStackTrace();
         }
-        finish();
+        String code = "";
+        for (String s : mAnswerArray) {
+            code += s;
+        }
+        for (Button b : mInputList) {
+            b.setClickable(false);
+        }
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(
+                GameActivity.this);
+        if (result.equals("loss")) {
+            builder.setMessage("The Correct code was " + code)
+                    .setTitle("Game Over");
+        } else {
+            builder.setMessage("Correct!")
+                    .setTitle("You won!");
+        }
+        builder.setNegativeButton("Go Home", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                finish();
+            }
+        });
+        builder.setNeutralButton("View board", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+
+            }
+        });
+        builder.setPositiveButton("New Game", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                ParseObject gameObject = SelectGameActivity.makeParseObject("Single");
+
+                Intent i = new Intent(getApplicationContext(), GameActivity.class);
+                i.putExtra(Keys.OBJECT_ID_STRING, gameObject.getObjectId());
+                startActivity(i);
+                finish();
+            }
+        });
+        AlertDialog alert = builder.create();
+        alert.show();
     }
 
     public void localTextViews() {
@@ -946,9 +960,124 @@ public class GameActivity extends ActionBarActivity {
     }
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu items for use in the action bar
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.game_menu, menu);
+
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle presses on the action bar items
+        switch (item.getItemId()) {
+            case R.id.game_info:
+                if (mGameType.equals(Keys.GAME_TYPE_COLLAB_STRING)) {
+                    if (mGameObject.getBoolean(Keys.IS_OVER_KEY)) {
+
+                        ParseRelation userRelation = mGameObject.getRelation(Keys.PLAYERS_KEY);
+                        ParseQuery userQuery = userRelation.getQuery();
+                        userQuery.findInBackground(new FindCallback() {
+                            @Override
+                            public void done(List list, ParseException e) {
+
+                            }
+
+                            @Override
+                            public void done(Object o, Throwable throwable) {
+                                ListView listView = new ListView(mActivityContext);
+                                GameInfoAdapter adapter = new GameInfoAdapter
+                                        ((List<ParseObject>) o);
+
+                                listView.setAdapter(adapter);
+
+                                final Dialog dialog = new Dialog(mActivityContext);
+                                dialog.setTitle("Players");
+                                dialog.setContentView(listView);
+                                dialog.show();
+                            }
+                        });
+                    }
+                }
+
+
+            default:
+                return super.onOptionsItemSelected(item);
+
+        }
+
+    }
+
+    public class GameInfoAdapter extends BaseAdapter {
+        private TextView mName;
+        private TextView mInfo;
+        private ArrayList<ParseObject> mList;
+
+        public GameInfoAdapter(List list) {
+            mList = (ArrayList<ParseObject>) list;
+        }
+
+        @Override
+        public int getCount() {
+            return mList.size();
+        }
+
+        @Override
+        public Object getItem(int position) {
+            return mList.get(position);
+        }
+
+        @Override
+        public long getItemId(int position) {
+            return 0;
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            if (convertView == null) {
+                convertView = getLayoutInflater().inflate(R.layout.game_info_row, null);
+            }
+            mName = (TextView) convertView.findViewById(R.id.name);
+            mInfo = (TextView) convertView.findViewById(R.id.info);
+
+
+            if (mGameType.equals(Keys.GAME_TYPE_COLLAB_STRING)) {
+                if (mGameObject.getBoolean(Keys.IS_OVER_KEY)) {
+                    mName.setVisibility(View.VISIBLE);
+                    mName.setText(mList.get(position).getString(Keys.USERNAME_KEY));
+                    mInfo.setVisibility(View.GONE);
+                } else {
+                    mName.setVisibility(View.VISIBLE);
+                    mName.setText(((ParseObject) mList.get(position)
+                            .get(Keys.PLAYER_KEY)).getString(Keys.USERNAME_KEY));
+                    mInfo.setText(mList.get(position).getList(Keys.GUESS_KEY).toString());
+                    mInfo.setVisibility(View.VISIBLE);
+                }
+            } else {
+                if (mGameObject.getBoolean(Keys.IS_OVER_KEY)) {
+                    mName.setVisibility(View.VISIBLE);
+                    mName.setText(((ParseObject) mList.get(position)
+                            .get(Keys.PLAYER_KEY)).getString(Keys.USERNAME_KEY));
+                    if (mList.get(position).getBoolean(Keys.IS_OVER_KEY)) {
+                        mInfo.setText("Guessed in " + (10 - mList.get(position)
+                                .getInt(Keys.GUESSES_REMAINING) + "guesses"));
+                    } else {
+                        mInfo.setText(mList.get(position).getInt(Keys.GUESSES_REMAINING) +
+                                " guesses remaining");
+                    }
+                }
+            }
+
+            return convertView;
+        }
+    }
+
+    @Override
     protected void onStop() {
         super.onStop();
         int indexInArray = 0;
 
     }
+
 }

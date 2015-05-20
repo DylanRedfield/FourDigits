@@ -8,6 +8,7 @@ import android.graphics.Typeface;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.text.InputType;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -53,6 +54,7 @@ public class MainActivity extends ActionBarActivity {
     private TextView mRecord;
     private TextView mEmptyText;
     private ParseObject mSelectedObject;
+    private Menu mMenu;
 
     private boolean firstQuery = true;
 
@@ -73,7 +75,10 @@ public class MainActivity extends ActionBarActivity {
         firstQuery = true;
         queryParse();
 
-
+        if (mMenu != null) {
+            mMenu.clear();
+            onCreateOptionsMenu(mMenu);
+        }
     }
 
     public void makeObjects() {
@@ -219,8 +224,7 @@ public class MainActivity extends ActionBarActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        //TODO hide games on sighn out
-        //TODO refresh menu icons/
+        mMenu = menu;
         // Inflate the menu items for use in the action bar
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.menu_main, menu);
@@ -266,6 +270,7 @@ public class MainActivity extends ActionBarActivity {
         }
     }
 
+    //TODO notifcation not firing if just one other
     public void addFriend() {
         AlertDialog.Builder alert = new AlertDialog.Builder(MainActivity.this);
 
@@ -306,6 +311,22 @@ public class MainActivity extends ActionBarActivity {
                                                     (Keys.NUM_FRIENDS_KEY);
                                             mCurrentUser.saveInBackground();
 
+                                        } else {
+                                            AlertDialog.Builder builder = new
+                                                    AlertDialog.Builder(MainActivity.this);
+                                            builder.setMessage(e.getMessage())
+                                                    .setCancelable(false)
+                                                    .setPositiveButton("OK", new
+                                                            DialogInterface.OnClickListener() {
+                                                                public void onClick
+                                                                        (DialogInterface dialog,
+                                                                         int id) {
+                                                                    dialog.cancel();
+                                                                }
+                                                            });
+                                            builder.setTitle("Whoops!");
+                                            AlertDialog alert = builder.create();
+                                            alert.show();
                                         }
                                     }
                                 });
@@ -348,7 +369,12 @@ public class MainActivity extends ActionBarActivity {
             e.printStackTrace();
         }
         setUserInfo();
+
+        firstQuery = true;
         queryParse();
+
+        mMenu.clear();
+        onCreateOptionsMenu(mMenu);
     }
 
     public class GamesAdapter extends BaseAdapter {

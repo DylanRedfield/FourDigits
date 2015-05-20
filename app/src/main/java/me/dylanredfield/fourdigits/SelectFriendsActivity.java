@@ -35,7 +35,6 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 
 public class SelectFriendsActivity extends ActionBarActivity {
     private Typeface mFont;
@@ -95,7 +94,7 @@ public class SelectFriendsActivity extends ActionBarActivity {
             case R.id.complete:
                 if (mGameTypeString.equals(Keys.GAME_TYPE_WHO_FIRST_STRING)) {
                     if (mInvitedList.size() > 0 && mInvitedList.size() < 7) {
-                        String[] answerArr = SelectGameActivity.MakeAnswer();
+                        String[] answerArr = SelectGameActivity.makeAnswer();
 
                         ParseObject inviteObject = new ParseObject("Invite");
                         inviteObject.put(Keys.FROM_USER_KEY, mCurrentUser);
@@ -194,7 +193,7 @@ public class SelectFriendsActivity extends ActionBarActivity {
                 }
                 if (mGameTypeString.equals(Keys.GAME_TYPE_COLLAB_STRING)) {
                     if (mInvitedList.size() > 1 && mInvitedList.size() < 7) {
-                        String[] answerArr = SelectGameActivity.MakeAnswer();
+                        String[] answerArr = SelectGameActivity.makeAnswer();
 
                         ParseObject inviteObject = new ParseObject("Invite");
                         inviteObject.put(Keys.FROM_USER_KEY, mCurrentUser);
@@ -349,10 +348,11 @@ public class SelectFriendsActivity extends ActionBarActivity {
                         mInvitedList.add(mFriendsArrayList.get(position));
                     } else {
                         ((Button) v).setText("Challenge");
+                        Log.d("removeTest", "remove");
                         v.getBackground().setColorFilter(getResources()
                                 .getColor(R.color.button_white), PorterDuff.Mode.SRC_OVER);
                         int index = mInvitedList.indexOf(mFriendsArrayList.get(position));
-                        mInvitedList.remove(mFriendsArrayList.get(index));
+                        mInvitedList.remove(index);
                     }
                 }
             });
