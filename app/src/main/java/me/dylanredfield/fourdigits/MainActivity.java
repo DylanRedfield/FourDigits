@@ -1,8 +1,12 @@
 package me.dylanredfield.fourdigits;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.Typeface;
 import android.support.v7.app.ActionBarActivity;
@@ -17,19 +21,28 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.parse.FindCallback;
 import com.parse.FunctionCallback;
+import com.parse.GetDataCallback;
 import com.parse.ParseAnonymousUtils;
 import com.parse.ParseCloud;
 import com.parse.ParseException;
+import com.parse.ParseFile;
+import com.parse.ParseInstallation;
 import com.parse.ParseObject;
+import com.parse.ParsePush;
 import com.parse.ParseQuery;
 import com.parse.ParseRelation;
 import com.parse.ParseUser;
+import com.parse.SaveCallback;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -55,6 +68,9 @@ public class MainActivity extends ActionBarActivity {
     private TextView mEmptyText;
     private ParseObject mSelectedObject;
     private Menu mMenu;
+    private ImageView mThumbnail;
+    private Context mContext;
+
 
     private boolean firstQuery = true;
 
@@ -62,12 +78,14 @@ public class MainActivity extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        Log.d("onCreate", "test");
     }
 
     @Override
     protected void onResume() {
         super.onResume();
 
+        findViewById(R.id.loadingPanel).setVisibility(View.VISIBLE);
         makeObjects();
 
         parseStuff();
@@ -82,8 +100,16 @@ public class MainActivity extends ActionBarActivity {
     }
 
     public void makeObjects() {
-        mFont = Typeface.createFromAsset(getAssets(), "Arista_2.ttf");
 
+        if (mContext == null) {
+            mContext = this;
+        }
+        mFont = Typeface.createFromAsset(getAssets(), "Arista_2.ttf");
+        try {
+            mCurrentUser = ParseUser.getCurrentUser().fetch();
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
         mGameList = new ArrayList<>();
         mYourTurnList = new ArrayList<>();
         mTheirTurnList = new ArrayList<>();
@@ -95,6 +121,7 @@ public class MainActivity extends ActionBarActivity {
         mRecord = (TextView) findViewById(R.id.record);
         mNewGame = (Button) findViewById(R.id.new_game);
         mEmptyText = (TextView) findViewById(R.id.empty_list);
+        mThumbnail = (ImageView) findViewById(R.id.thumbnail);
 
         mEmptyText.setText("No games");
         mListView.setEmptyView(mEmptyText);
@@ -106,15 +133,12 @@ public class MainActivity extends ActionBarActivity {
         mAdapter = new GamesAdapter();
         mListView.setAdapter(mAdapter);
 
+
     }
 
     public void parseStuff() {
 
-        try {
-            mCurrentUser = ParseUser.getCurrentUser().fetch();
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
+
         setUserInfo();
 
     }
@@ -129,6 +153,27 @@ public class MainActivity extends ActionBarActivity {
 
             mRecord.setText("" + mCurrentUser.getInt(Keys.TOTAL_WINS_KEY) + "-" +
                     mCurrentUser.getInt(Keys.TOTAL_LOSSES_KEY));
+        } else {
+            mUsernameText.setText("Not Logged In");
+        }
+        final ParseFile parseFile = (ParseFile) mCurrentUser.get("profilePicture");
+        if (parseFile != null) {
+            parseFile.getDataInBackground(new GetDataCallback() {
+                @Override
+                public void done(byte[] bytes, ParseException e) {
+                    if (e == null) {
+                        displayImage(parseFile, mThumbnail);
+                    } else {
+                        Bitmap bitmapDraw = BitmapFactory.decodeResource(getResources(), R.drawable.sil);
+                        mThumbnail.setImageBitmap(ImageHelper
+                                .getRoundedCornerBitmap(bitmapDraw, Color.WHITE, 10, 5, mContext));
+                    }
+                }
+            });
+        } else {
+            Bitmap bitmapDraw = BitmapFactory.decodeResource(getResources(), R.drawable.sil);
+            mThumbnail.setImageBitmap(ImageHelper
+                    .getRoundedCornerBitmap(bitmapDraw, Color.WHITE, 10, 5, mContext));
         }
     }
 
@@ -207,6 +252,7 @@ public class MainActivity extends ActionBarActivity {
                 }
                 mAdapter = new GamesAdapter();
                 mListView.setAdapter(mAdapter);
+                findViewById(R.id.loadingPanel).setVisibility(View.GONE);
             }
         });
     }
@@ -217,6 +263,31 @@ public class MainActivity extends ActionBarActivity {
             public void onClick(View v) {
                 Intent i = new Intent(getApplicationContext(), SelectGameActivity.class);
                 startActivity(i);
+            }
+        });
+
+        mUsernameText.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (!ParseAnonymousUtils.isLinked(mCurrentUser)) {
+                    Intent i = new Intent(getApplicationContext(), ActivityProfile.class);
+                    startActivity(i);
+                } else {
+                    Intent i = new Intent(getApplicationContext(), CreateAccountActivity.class);
+                    startActivity(i);
+                }
+            }
+        });
+        mThumbnail.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (!ParseAnonymousUtils.isLinked(mCurrentUser)) {
+                    Intent i = new Intent(getApplicationContext(), ActivityProfile.class);
+                    startActivity(i);
+                } else {
+                    Intent i = new Intent(getApplicationContext(), CreateAccountActivity.class);
+                    startActivity(i);
+                }
             }
         });
     }
@@ -251,6 +322,20 @@ public class MainActivity extends ActionBarActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle presses on the action bar items
         switch (item.getItemId()) {
+            case R.id.refresh:
+                findViewById(R.id.loadingPanel).setVisibility(View.VISIBLE);
+                makeObjects();
+
+                parseStuff();
+                setListeners();
+                firstQuery = true;
+                queryParse();
+
+                if (mMenu != null) {
+                    mMenu.clear();
+                    onCreateOptionsMenu(mMenu);
+                }
+                return true;
             case R.id.add_friend:
                 addFriend();
                 return true;
@@ -270,7 +355,6 @@ public class MainActivity extends ActionBarActivity {
         }
     }
 
-    //TODO notifcation not firing if just one other
     public void addFriend() {
         AlertDialog.Builder alert = new AlertDialog.Builder(MainActivity.this);
 
@@ -363,18 +447,19 @@ public class MainActivity extends ActionBarActivity {
         mCurrentUser.put(Keys.VS_TIES_KEY, 0);
         mCurrentUser.put(Keys.VS_WINS_KEY, 0);
         mCurrentUser.put(Keys.COLLAB_LOSSES_KEY, 0);
-        try {
-            mCurrentUser.save();
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-        setUserInfo();
+        mCurrentUser.saveInBackground(new SaveCallback() {
+            @Override
+            public void done(ParseException e) {
+                setUserInfo();
 
-        firstQuery = true;
-        queryParse();
+                firstQuery = true;
+                queryParse();
 
-        mMenu.clear();
-        onCreateOptionsMenu(mMenu);
+                mMenu.clear();
+                onCreateOptionsMenu(mMenu);
+            }
+        });
+
     }
 
     public class GamesAdapter extends BaseAdapter {
@@ -473,7 +558,7 @@ public class MainActivity extends ActionBarActivity {
             } else if (type.equals(Keys.GAME_TYPE_SINGLE_STRING)) {
                 type = "single";
             } else {
-                type = "collaborative";
+                type = "group";
             }
             gameType.setText(type);
 
@@ -493,7 +578,7 @@ public class MainActivity extends ActionBarActivity {
                     if (list[i].equals(mCurrentUser.getObjectId())) {
                         indexInArray = i;
                     }
-                    if (type.equals("collaborative")) {
+                    if (type.equals("group")) {
                         indexInArray = 0;
                     }
                 }
@@ -518,25 +603,39 @@ public class MainActivity extends ActionBarActivity {
                     + mGameOverList.size()) {
 
                 action.setVisibility(View.VISIBLE);
-                action.setText("Results");
+                action.setText("results");
                 action.getBackground().setColorFilter(getResources()
                         .getColor(R.color.button_white), PorterDuff.Mode.LIGHTEN);
 
                 info.setVisibility(View.VISIBLE);
-                if (mFullList.get(position).getList(Keys.WINNERS_KEY) != null) {
-                    String[] winnerList = mFullList.get(position).getList(Keys.WINNERS_KEY)
-                            .toArray(new String[0]);
-                    for (int i = 0; i < winnerList.length; i++) {
-                        if (mCurrentUser.getObjectId().equals(winnerList[i])) {
-                            info.setText("Won");
-                        }
-                    }
-                    if (!info.getText().toString().equals("Won")) {
+                String typerino = mFullList.get(position).getParseObject(Keys.GAME_TYPE_KEY)
+                        .getString("type");
+                if (typerino.equals(Keys.GAME_TYPE_COLLAB_STRING)) {
+                    if (mFullList.get(position).getList(Keys.WINNERS_KEY).size() > 0) {
+                        info.setText("Won");
+                    } else {
                         info.setText("Lost");
                     }
                 } else {
-
-                    info.setText("Lost");
+                    if (mFullList.get(position).getList(Keys.WINNERS_KEY) != null) {
+                        String[] winnerList = mFullList.get(position).getList(Keys.WINNERS_KEY)
+                                .toArray(new String[0]);
+                        for (int i = 0; i < winnerList.length; i++) {
+                            if (mCurrentUser.getObjectId().equals(winnerList[i])) {
+                                if (winnerList.length > 1) {
+                                    info.setText("Tie");
+                                } else {
+                                    info.setText("Won");
+                                }
+                            }
+                        }
+                        if (!info.getText().toString().equals("Won") &&
+                                !info.getText().toString().equals("Tie")) {
+                            info.setText("Lost");
+                        }
+                    } else {
+                        info.setText("Lost");
+                    }
                 }
 
 
@@ -547,10 +646,36 @@ public class MainActivity extends ActionBarActivity {
                 public void onClick(View v) {
                     if (((Button) v).getText().toString().equals("accept")) {
                         callCloudCode(position);
-                    } else if (((Button) v).getText().toString().equals("Results")) {
+                    } else if (((Button) v).getText().toString().equals("results")) {
                         Intent i = new Intent(getApplicationContext(), ResultsActivity.class);
                         i.putExtra(Keys.OBJECT_ID_STRING, mFullList.get(position).getObjectId());
                         startActivity(i);
+                    } else if (((Button) v).getText().toString().equals("nudge")) {
+                        ParseRelation players = mFullList.get(position).getRelation("players");
+                        ParseQuery playerQuery = players.getQuery();
+                        ParseQuery instQuery = ParseInstallation.getQuery();
+                        instQuery.whereMatchesQuery("user", playerQuery);
+                        instQuery.whereNotEqualTo("user", mCurrentUser);
+                        String input = "You were just nudged in your game with " +
+                                mFullList.get(position).getString(Keys.PLAYER_STRINGS_KEY);
+
+                        JSONObject data = null;
+                        try {
+                            data = new JSONObject("{\"alert\": \"" + input + "\"" +
+                                    ",\"badge\": \"Increment\",\"pushType\": \"Nudge\"" +
+                                    ",\"gameId\": \"" +
+                                    mFullList.get(position).getObjectId() + "\"}");
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                        ParsePush push = new ParsePush();
+                        push.setData(data);
+                        push.setQuery(instQuery);
+                        push.sendInBackground();
+
+
+                        //TODO Get to the end who first loss
+
                     } else {
                         Intent i = new Intent(getApplicationContext(), GameActivity.class);
                         i.putExtra(Keys.OBJECT_ID_STRING, mFullList.get(position).getObjectId());
@@ -610,6 +735,37 @@ public class MainActivity extends ActionBarActivity {
                         }
                     }
                 });
+    }
+
+    private void displayImage(ParseFile thumbnail, final ImageView img) {
+
+        if (thumbnail != null) {
+            thumbnail.getDataInBackground(new GetDataCallback() {
+
+                @Override
+                public void done(byte[] data, ParseException e) {
+
+                    if (e == null) {
+                        Bitmap bmp = BitmapFactory.decodeByteArray(data, 0,
+                                data.length);
+
+                        if (bmp != null) {
+                            mThumbnail.setImageBitmap(ImageHelper
+                                    .getRoundedCornerBitmap(bmp, Color.WHITE, 10, 5, mContext));
+                        }
+                    } else {
+                        Log.e("paser after downloade", " null");
+                    }
+
+                }
+            });
+        } else {
+
+            Log.e("parse file", " null");
+
+
+        }
+
     }
 
 }

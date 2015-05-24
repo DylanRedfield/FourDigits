@@ -5,6 +5,7 @@ import android.content.DialogInterface;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
+import android.text.InputType;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -49,6 +50,9 @@ public class CreateAccountActivity extends ActionBarActivity {
     public void defualtViewValues() {
         mRegister.setTypeface(mFont);
         mAlreadyHave.setTypeface(mFont);
+
+        mFirstName.setInputType(InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
+        mUserName.setInputType(InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
     }
 
     public void setListeners() {
@@ -68,11 +72,15 @@ public class CreateAccountActivity extends ActionBarActivity {
                 if (!mUserName.getText().toString().equals("")) {
 
                     if (!mUserName.getText().toString().trim().contains(" ")) {
-
-                        if (!mPassWord.getText().toString().equals("")) {
-                            makeUser();
+                        if (mUserName.getText().toString().trim().length() < 16) {
+                            if (!mPassWord.getText().toString().equals("")) {
+                                makeUser();
+                            } else {
+                                makeError("Enter a Password", "password cannot be blank");
+                            }
                         } else {
-                            makeError("Enter a Password", "password cannot be blank");
+                            makeError("Invalid username",
+                                    "username must be less than 16 characters");
                         }
                     } else {
                         makeError("Invalid username", "username must be one word");

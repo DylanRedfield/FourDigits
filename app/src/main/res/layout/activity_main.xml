@@ -1,62 +1,95 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:background="@color/light_purple"
-    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/light_purple"
+    android:orientation="vertical"
     tools:context=".MainActivity">
+
     <ListView
         android:id="@+id/list"
-        android:layout_weight="5"
         android:layout_width="match_parent"
-        android:layout_height="0dp"></ListView>
+        android:layout_height="0dp"
+        android:layout_weight="5"></ListView>
+
     <TextView
         android:id="@+id/empty_list"
         android:layout_width="match_parent"
-        android:visibility="gone"
+        android:layout_height="0dp"
+        android:layout_weight="5"
+        android:gravity="center"
         android:textColor="@color/white"
         android:textSize="25sp"
-        android:gravity="center"
-        android:layout_weight="5"
-        android:layout_height="0dp"/>
+        android:visibility="gone" />
+
     <RelativeLayout
-        android:background="@color/dark_purple"
-        android:layout_alignParentBottom="true"
-        android:paddingTop="12dp"
-        android:paddingBottom="12dp"
-        android:paddingLeft="12dp"
-        android:paddingRight="12dp"
-        android:layout_weight="1"
+        android:id="@+id/loadingPanel"
         android:layout_width="match_parent"
-        android:layout_height="0dp">
-        <TextView
-            android:id="@+id/name"
-            android:textSize="25sp"
-            android:textColor="@color/white"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-        <TextView
-            android:id="@+id/record"
+        android:layout_height="match_parent"
+        android:gravity="center">
+
+        <ProgressBar
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="@color/grey"
-            android:textSize="25sp"
-            android:layout_below="@id/name"/>
+            android:indeterminate="true" />
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:background="@color/dark_purple"
+        android:paddingBottom="6dp"
+        android:paddingRight="12dp"
+        android:paddingTop="6dp">
+
+        <ImageView
+            android:id="@+id/thumbnail"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_centerVertical="true"
+            android:layout_margin="10dp"
+            android:src="@drawable/sil" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_toRightOf="@id/thumbnail"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/white"
+                android:textSize="20sp" />
+
+
+            <TextView
+                android:id="@+id/record"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/grey"
+                android:textSize="20sp" />
+        </LinearLayout>
+
         <Button
             android:id="@+id/new_game"
-            android:textAllCaps="false"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:background="@drawable/game_type_friends_button"
             android:paddingLeft="8dp"
             android:paddingRight="8dp"
-            android:background="@drawable/game_type_friends_button"
             android:text="@string/new_game"
-            android:layout_centerInParent="true"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentEnd="true"
+            android:textAllCaps="false"
             android:textColor="@color/dark_purple"
-            android:textSize="25sp"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-        </RelativeLayout>
+            android:textSize="20sp" />
+
+    </RelativeLayout>
 
 
 </LinearLayout>

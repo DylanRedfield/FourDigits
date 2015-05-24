@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">FourDigits</string>
+    <string name="app_name">Four Digits</string>
     <string name="invites">Invites</string>
     <string name="your_turn">Your Turn</string>
     <string name="their_turn">Their Turn</string>
@@ -23,7 +23,8 @@
     <string name="zero">0</string>
     <string name="ten">10</string>
     <string name="check">Check</string>
-    <string name="game_type">Game Type</string>
+    <string name="game_type">Select Game Type</string>
+    <string name="refresh">Refresh</string>
     <string name="collaborative">Collaborative</string>
     <string name="vs">vs</string>
     <string name="computer">Computer</string>
@@ -45,4 +46,7 @@
     <string name="sign_in">Sign In</string>
     <string name="complete">Finish</string>
     <string name="game_info">Game Info</string>
+    <string name="create_account">Crreate Account</string>
+    <string name="results">Results</string>
+    <string name="profile">Profile</string>
 </resources>

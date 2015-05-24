@@ -1,6 +1,9 @@
 package me.dylanredfield.fourdigits;
 
+import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Typeface;
@@ -13,6 +16,7 @@ import android.widget.TextView;
 import com.parse.ParseException;
 import com.parse.ParseObject;
 import com.parse.ParseUser;
+import com.parse.SaveCallback;
 
 import java.util.Arrays;
 import java.util.Random;
@@ -25,11 +29,16 @@ public class SelectGameActivity extends ActionBarActivity {
     private Button mFriendsVs;
     private Typeface mFont;
     private ParseUser mCurrentUser;
+    private static Activity mActivityContext;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_select_game);
+        mActivityContext = this;
+        while (mActivityContext.getParent() != null) {
+            mActivityContext = mActivityContext.getParent();
+        }
         mCurrentUser = ParseUser.getCurrentUser();
         instantiateViews();
         setFonts();
@@ -58,12 +67,9 @@ public class SelectGameActivity extends ActionBarActivity {
         mComputer.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ParseObject gameObject = makeParseObject("Single");
+                makeParseObject("Single", SelectGameActivity.this, mActivityContext);
 
-                Intent i = new Intent(getApplicationContext(), GameActivity.class);
-                i.putExtra(Keys.OBJECT_ID_STRING, gameObject.getObjectId());
-                startActivity(i);
-                finish();
+
             }
         });
         mFriendsVs.setOnClickListener(new View.OnClickListener() {
@@ -114,14 +120,16 @@ public class SelectGameActivity extends ActionBarActivity {
         });
     }
 
-    public static ParseObject makeParseObject(String type) {
-        ParseObject gameObject = new ParseObject("Game");
+    public static ParseObject makeParseObject(String type, final Context context,
+                                              final Activity activity) {
+        final ProgressDialog progressDialog;
+        final ParseObject gameObject = new ParseObject("Game");
         String newType = "";
 
         if (type.equals("Single")) {
-            newType = "RES5eEM4gi";
+            newType = "qIVH6Y13Dw";
         } else if (type.equals("WhoFirst")) {
-            newType = "VO1JEboYcd";
+            newType = "mSymctKi0s";
         }
 
         gameObject.put("GameType",
@@ -135,12 +143,23 @@ public class SelectGameActivity extends ActionBarActivity {
         gameObject.addAll("usersTurn",
                 Arrays.asList(new String[]{ParseUser.getCurrentUser().getObjectId()}));
         gameObject.getRelation("whoseTurn").add(ParseUser.getCurrentUser());
-        try {
-            gameObject.save();
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
+        progressDialog = new ProgressDialog(context);
+        progressDialog.setCancelable(false);
+        progressDialog.setMessage("Loading");
+        progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        progressDialog.show();
+        gameObject.saveInBackground(new SaveCallback() {
+            @Override
+            public void done(ParseException e) {
+                progressDialog.dismiss();
+                Intent i = new Intent(context, GameActivity.class);
+                i.putExtra(Keys.OBJECT_ID_STRING, gameObject.getObjectId());
+                context.startActivity(i);
+                activity.finish();
+            }
+        });
         return gameObject;
+
     }
 
     public static String[] makeAnswer() {

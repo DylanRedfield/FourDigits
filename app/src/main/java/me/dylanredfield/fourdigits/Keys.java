@@ -44,9 +44,9 @@ public class Keys {
     public static String COLLAB_GUESS = "CollaborativeGuess";
     public static String WHOSE_TURN_KEY = "whoseTurn";
     public static String UPDATED_AT_KEY = "updatedAt";
-    public static String GAME_TYPE_COLLAB = "OlTiCKLYM0";
-    public static String GAME_TYPE_WHO_FIRST = "VO1JEboYcd";
-    public static String GAME_TYPE_SINGLE = "RES5eEM4gi";
+    public static String GAME_TYPE_COLLAB = "reybmVxNVZ";
+    public static String GAME_TYPE_WHO_FIRST = "mSymctKi0s";
+    public static String GAME_TYPE_SINGLE = "qIVH6Y13Dw";
 
     public static String GAME_TYPE_WHO_FIRST_STRING = "WhoFirst";
     public static String GAME_TYPE_SINGLE_STRING = "Single";
