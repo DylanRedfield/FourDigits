@@ -19,4 +19,7 @@
     <item
         android:id="@+id/log_out"
         android:title="@string/log_out" />
+    <item
+        android:id="@+id/profile"
+        android:title="@string/view_profile" />
 </menu>

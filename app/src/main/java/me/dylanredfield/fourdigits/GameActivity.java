@@ -4,11 +4,14 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.Typeface;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
@@ -22,12 +25,9 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.ListView;
-import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -95,15 +95,15 @@ public class GameActivity extends ActionBarActivity {
 
         if (mGameObject.getBoolean(Keys.IS_OVER_KEY)) {
             for (Button b : mInputList) {
-                b.setClickable(false);
+                b.setEnabled(false);
+                b.getBackground().setColorFilter(getResources().getColor(R.color.grey),
+                        PorterDuff.Mode.LIGHTEN);
             }
         }
     }
 
     public void getStuff() {
 
-
-        mCurrentUser = ParseUser.getCurrentUser();
 
         mActivityContext = this;
         while (mActivityContext.getParent() != null) {
@@ -116,6 +116,8 @@ public class GameActivity extends ActionBarActivity {
         } catch (ParseException e) {
             e.printStackTrace();
         }
+
+        mCurrentUser = ParseUser.getCurrentUser();
         mAnswerArray = new String[4];
         mAnswerArray = mGameObject.getList(Keys.CODE_KEY).toArray(mAnswerArray);
 
@@ -338,7 +340,7 @@ public class GameActivity extends ActionBarActivity {
             });
 
         }
-        mInputList.get(9).setClickable(false);
+        mInputList.get(9).setEnabled(false);
 
         for (TextView t : mTextLabels) {
             t.setTypeface(mFont);
@@ -350,9 +352,23 @@ public class GameActivity extends ActionBarActivity {
         mCheck.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                checkOnClick();
-
+                if (isOnline()) {
+                    checkOnClick();
+                } else {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(
+                            GameActivity.this);
+                    builder.setMessage("No connection")
+                            .setCancelable(false)
+                            .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                }
+                            });
+                    builder.setTitle("Whoops!");
+                    AlertDialog alert = builder.create();
+                    alert.show();
+                }
             }
+
         });
         mLayout = (RelativeLayout) findViewById(R.id.layout);
         mLayout.getViewTreeObserver().addOnGlobalLayoutListener
@@ -382,7 +398,7 @@ public class GameActivity extends ActionBarActivity {
             AlertDialog alert = builder.create();
             alert.show();
         } else {
-            mInputList.get(9).setClickable(true);
+            mInputList.get(9).setEnabled(true);
             isChecked = false;
             mInput = Integer.parseInt(((Button) v).getText().toString());
             mButtonList.get(mCurrentButtonInt).setText("" + mInput);
@@ -393,35 +409,42 @@ public class GameActivity extends ActionBarActivity {
             mPreviousButtonInt++;
 
             //TODO set color disabled
-            v.setClickable(false);
+            v.setEnabled(false);
+            v.getBackground().setColorFilter(getResources().getColor(R.color.grey),
+                    PorterDuff.Mode.LIGHTEN);
         }
     }
 
     public void enableAll() {
         for (Button b : mInputList) {
-            b.setClickable(true);
+            b.setEnabled(true);
+            b.getBackground().setColorFilter(getResources().getColor(R.color.button_white),
+                    PorterDuff.Mode.DARKEN);
         }
-        mInputList.get(9).setClickable(false);
+        mInputList.get(9).setEnabled(false);
         isChecked = true;
     }
 
     public void disableAll() {
         for (Button b : mInputList) {
-            b.setClickable(false);
+            b.setEnabled(false);
         }
-        mInputList.get(9).setClickable(true);
+        mInputList.get(9).setEnabled(true);
     }
 
     public void deleteInput() {
         mCurrentButtonInt--;
         mPreviousButtonInt--;
         mInputList.get(Integer.parseInt(mButtonList.get(mCurrentButtonInt).getText()
-                .toString()) - 1).setClickable(true);
+                .toString()) - 1).setEnabled(true);
+        mInputList.get(Integer.parseInt(mButtonList.get(mCurrentButtonInt).getText()
+                .toString()) - 1).getBackground().setColorFilter(getResources().getColor(R.color.button_white),
+                PorterDuff.Mode.DARKEN);
         mButtonList.get(mCurrentButtonInt).setText("");
         mButtonList.get(mCurrentButtonInt).getBackground().setColorFilter(
                 getResources().getColor(R.color.dark_purple), PorterDuff.Mode.DARKEN);
         if (mCurrentButtonInt % 4 == 0) {
-            mInputList.get(9).setClickable(false);
+            mInputList.get(9).setEnabled(false);
             isChecked = true;
         }
 
@@ -441,7 +464,7 @@ public class GameActivity extends ActionBarActivity {
         if (mGameType.equals(Keys.GAME_TYPE_COLLAB_STRING)) {
             Log.d("gameType", mGameType);
             if (mPreviousButtonInt % 4 == 3 && !isChecked) {
-                mInputList.get(9).setClickable(false);
+                mInputList.get(9).setEnabled(false);
                 mGameObject.getRelation(Keys.WHOSE_TURN_KEY).remove(mCurrentUser);
                 List tempArray = mGameObject.getList(Keys.USERS_TURN_KEY);
 
@@ -494,7 +517,7 @@ public class GameActivity extends ActionBarActivity {
         } else {
             if (mPreviousButtonInt % 4 == 3 && !isChecked) {
                 String[] tempArray = incrementPoints();
-                setUIToWait(false);
+                //setUIToWait(false);
 
                 if (mNumCorrectSpot == 4) {
                     ifWinGame();
@@ -770,7 +793,9 @@ public class GameActivity extends ActionBarActivity {
 
     public void ifWinGame() {
         for (Button b : mInputList) {
-            b.setClickable(false);
+            b.setEnabled(false);
+            b.getBackground().setColorFilter(getResources().getColor(R.color.grey),
+                    PorterDuff.Mode.LIGHTEN);
         }
         ParseRelation relation = mGameObject.getRelation("whoseTurn");
         relation.remove(mCurrentUser);
@@ -1043,7 +1068,9 @@ public class GameActivity extends ActionBarActivity {
             code += s;
         }
         for (Button b : mInputList) {
-            b.setClickable(false);
+            b.setEnabled(false);
+            b.getBackground().setColorFilter(getResources().getColor(R.color.grey),
+                    PorterDuff.Mode.LIGHTEN);
         }
 
         AlertDialog.Builder builder = new AlertDialog.Builder(
@@ -1065,7 +1092,9 @@ public class GameActivity extends ActionBarActivity {
             public void onClick(DialogInterface dialog, int which) {
                 dialog.cancel();
                 for (Button b : mInputList) {
-                    b.setClickable(false);
+                    b.setEnabled(false);
+                    b.getBackground().setColorFilter(getResources().getColor(R.color.grey),
+                            PorterDuff.Mode.LIGHTEN);
                 }
             }
         });
@@ -1258,7 +1287,9 @@ public class GameActivity extends ActionBarActivity {
             progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
             progressDialog.show();
         } else {
-            progressDialog.dismiss();
+            if (progressDialog != null) {
+                progressDialog.dismiss();
+            }
         }
 
     }
@@ -1338,6 +1369,13 @@ public class GameActivity extends ActionBarActivity {
         super.onStop();
         int indexInArray = 0;
 
+    }
+
+    public boolean isOnline() {
+        ConnectivityManager cm =
+                (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo netInfo = cm.getActiveNetworkInfo();
+        return netInfo != null && netInfo.isConnected();
     }
 
 }

@@ -2,9 +2,11 @@ package me.dylanredfield.fourdigits;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
+import android.text.InputType;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -47,6 +49,9 @@ public class SignInActivity extends ActionBarActivity {
     public void defualtViewValues() {
         mRegister.setTypeface(mFont);
         mAlreadyHave.setTypeface(mFont);
+
+
+        mUserName.setInputType(InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
     }
 
     public void setListeners() {
@@ -54,6 +59,14 @@ public class SignInActivity extends ActionBarActivity {
             @Override
             public void onClick(View v) {
                 checkValidInputs();
+            }
+        });
+        mAlreadyHave.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent i = new Intent(getApplicationContext(), CreateAccountActivity.class);
+                startActivity(i);
+                finish();
             }
         });
     }

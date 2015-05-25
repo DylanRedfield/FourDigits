@@ -107,7 +107,7 @@ public class SelectGameActivity extends ActionBarActivity {
                 } else {
                     AlertDialog.Builder builder = new AlertDialog.Builder(
                             SelectGameActivity.this);
-                    builder.setMessage("You need atleast two friend;")
+                    builder.setMessage("You need atleast two friends")
                             .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialog, int id) {
                                 }

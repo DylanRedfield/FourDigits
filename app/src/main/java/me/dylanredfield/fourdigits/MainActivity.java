@@ -303,17 +303,20 @@ public class MainActivity extends ActionBarActivity {
         MenuItem signIn = menu.findItem(R.id.sign_in);
         MenuItem addFriend = menu.findItem(R.id.add_friend);
         MenuItem logOut = menu.findItem(R.id.log_out);
+        MenuItem profile = menu.findItem(R.id.profile);
 
         if (ParseAnonymousUtils.isLinked(ParseUser.getCurrentUser())) {
             signUp.setVisible(true);
             signIn.setVisible(true);
             addFriend.setVisible(false);
             logOut.setVisible(false);
+            profile.setVisible(false);
         } else {
             signUp.setVisible(false);
             signIn.setVisible(false);
             addFriend.setVisible(true);
             logOut.setVisible(true);
+            profile.setVisible(true);
         }
         return super.onCreateOptionsMenu(menu);
     }
@@ -350,6 +353,9 @@ public class MainActivity extends ActionBarActivity {
                 Intent signInIntent = new Intent(getApplicationContext(), SignInActivity.class);
                 startActivity(signInIntent);
                 return true;
+            case R.id.profile:
+                Intent a = new Intent(getApplicationContext(), ActivityProfile.class);
+                startActivity(a);
             default:
                 return super.onOptionsItemSelected(item);
         }
